@@ -40,7 +40,7 @@ import nodash.models.NoSession.NoState;
 
 public final class NoCore {
 	public static NoConfig config;
-	private static NoHashSphereInterface hashSphere;
+	public static NoHashSphereInterface hashSphere;
 	
 	public static void setup(NoHashSphereInterface hashSphere) {
 		File configFile = new File(NoConfig.CONFIG_FILENAME);
