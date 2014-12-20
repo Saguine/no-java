@@ -8,8 +8,8 @@ import java.util.UUID;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
+import nodash.core.NoCore;
 import nodash.core.NoUtil;
-import nodash.core.spheres.NoHashSphere;
 import nodash.exceptions.NoByteSetBadDecryptionException;
 import nodash.exceptions.NoDashFatalException;
 import nodash.exceptions.NoDashSessionBadUUIDException;
@@ -56,7 +56,7 @@ public final class NoSession implements Serializable {
 		char[] passwordDupe = password.clone();		
 		try {
 			this.original = NoUser.createUserFromFile(data, password);
-			if (NoHashSphere.checkHash(this.original.createHashString())) {
+			if (NoCore.hashSphere.checkHash(this.original.createHashString())) {
 				this.current = NoUser.createUserFromFile(data, passwordDupe);
 				this.uuid = UUID.randomUUID();
 				NoUtil.wipeBytes(data);
@@ -136,14 +136,14 @@ public final class NoSession implements Serializable {
 			if (!this.newUserSession) {
 				/* 5.2.1: remove old hash from array */
 				try {
-					NoHashSphere.removeHash(this.original.createHashString());
+					NoCore.hashSphere.removeHash(this.original.createHashString());
 				} catch (IOException e) {
 					throw new NoDashFatalException("Unable to remove hash on confirm.");
 				}
 			}
 			/* 5.2.2: add new hash to array */
 			try {
-				NoHashSphere.insertHash(this.current.createHashString());
+				NoCore.hashSphere.insertHash(this.current.createHashString());
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new NoDashFatalException("Unable to remove hash on confirm.");
