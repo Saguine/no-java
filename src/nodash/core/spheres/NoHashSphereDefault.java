@@ -36,11 +36,20 @@ import nodash.models.NoUser;
 
 public final class NoHashSphereDefault implements NoHashSphereInterface {
 	private Set<String> database = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+	private String fileName;
+	
+	public NoHashSphereDefault(String fileName) {
+		this.fileName = fileName;
+	}
+	
+	public NoHashSphereDefault() {
+		this.fileName = NoCore.config.databaseFilename;
+	}
 	
 	@SuppressWarnings("unchecked")
 	public void setup() {
 		if (NoCore.config.saveDatabase) {
-			File file = new File(NoCore.config.databaseFilename);
+			File file = new File(this.fileName);
 			if (file.exists()) {
 				try {
 					byte[] data = Files.readAllBytes(file.toPath());
