@@ -34,11 +34,11 @@ import nodash.core.NoCore;
 import nodash.exceptions.NoDashFatalException;
 import nodash.models.NoUser;
 
-public final class NoHashSphere {
-	private static Set<String> database = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+public final class NoHashSphereDefault implements NoHashSphereInterface {
+	private Set<String> database = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 	
 	@SuppressWarnings("unchecked")
-	public static void setup() {
+	public void setup() {
 		if (NoCore.config.saveDatabase) {
 			File file = new File(NoCore.config.databaseFilename);
 			if (file.exists()) {
@@ -46,7 +46,7 @@ public final class NoHashSphere {
 					byte[] data = Files.readAllBytes(file.toPath());
 					ByteArrayInputStream bais = new ByteArrayInputStream(data);
 					ObjectInputStream ois = new ObjectInputStream(bais);
-					NoHashSphere.database = (Set<String>) ois.readObject();
+					this.database = (Set<String>) ois.readObject();
 					ois.close();
 					bais.close();
 				} catch (IOException e){
@@ -58,10 +58,10 @@ public final class NoHashSphere {
 		}
 	}
 	
-	public static synchronized void saveToFile() throws IOException {
+	public synchronized void saveToFile() throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(baos);
-		oos.writeObject(NoHashSphere.database);
+		oos.writeObject(this.database);
 		byte[] data = baos.toByteArray();
 		oos.close();
 		baos.close();
@@ -69,27 +69,27 @@ public final class NoHashSphere {
 		Files.write(file.toPath(), data, StandardOpenOption.CREATE);
 	}
 	
-	public static synchronized void addNewNoUser(NoUser user) throws IOException {
+	public synchronized void addNewNoUser(NoUser user) throws IOException {
 		String hash = user.createHashString();
-		NoHashSphere.database.add(hash); 
-		NoHashSphere.saveToFile();
+		this.database.add(hash); 
+		this.saveToFile();
 	}
 	
-	public static synchronized void insertHash(String hash) throws IOException {
-		NoHashSphere.database.add(hash); 
-		NoHashSphere.saveToFile();
+	public synchronized void insertHash(String hash) throws IOException {
+		this.database.add(hash); 
+		this.saveToFile();
 	}
 	
-	public static synchronized void removeHash(String hash) throws IOException {
-		NoHashSphere.database.remove(hash);
-		NoHashSphere.saveToFile();
+	public synchronized void removeHash(String hash) throws IOException {
+		this.database.remove(hash);
+		this.saveToFile();
 	}
 	
-	public static synchronized boolean checkHash(String hash) {
-		return NoHashSphere.database.contains(hash);
+	public synchronized boolean checkHash(String hash) {
+		return this.database.contains(hash);
 	}
 
-	public static synchronized int size() {
-		return NoHashSphere.database.size();
+	public synchronized int size() {
+		return this.database.size();
 	}
 }
