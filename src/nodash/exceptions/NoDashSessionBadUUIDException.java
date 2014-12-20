@@ -13,26 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * NoCannotGetInfluenceException is returned when an action is unable to
- * render a successful influence for the target, instead returning an 
- * influence to be returned to the sender if possible.
+ * NoDashSessionBadUUIDException is triggered when the NoSessionSphere is 
+ * unable to find a valid session for the provided UUID.
  */
 
 package nodash.exceptions;
 
-import nodash.models.NoInfluence;
+public class NoDashSessionBadUUIDException extends Exception {
+	private static final long serialVersionUID = -402131397575158344L;
 
-public class NoCannotGetInfluenceException extends Exception {
-	private static final long serialVersionUID = 4581361079067540974L;
-	
-	private NoInfluence returnable;
-	
-	public NoCannotGetInfluenceException(NoInfluence returnable) {
+	public NoDashSessionBadUUIDException() {
 		super();
-		this.returnable = returnable;
 	}
 	
-	public NoInfluence getResponseInfluence() {
-		return returnable;
+	public NoDashSessionBadUUIDException(Exception e) {
+		super(e);
 	}
 }

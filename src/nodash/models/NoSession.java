@@ -12,7 +12,7 @@ import nodash.core.NoUtil;
 import nodash.core.spheres.NoHashSphere;
 import nodash.exceptions.NoByteSetBadDecryptionException;
 import nodash.exceptions.NoDashFatalException;
-import nodash.exceptions.NoDashSessionBadUUID;
+import nodash.exceptions.NoDashSessionBadUUIDException;
 import nodash.exceptions.NoSessionConfirmedException;
 import nodash.exceptions.NoSessionExpiredException;
 import nodash.exceptions.NoSessionNotAwaitingConfirmationException;
@@ -200,13 +200,13 @@ public final class NoSession implements Serializable {
 		}
 	}
 	
-	public static UUID decryptUUID(byte[] data) throws NoDashSessionBadUUID {
+	public static UUID decryptUUID(byte[] data) throws NoDashSessionBadUUIDException {
 		try {
 			return UUID.fromString(new String(NoUtil.decrypt(data)));
 		} catch (IllegalBlockSizeException e) {
-			throw new NoDashSessionBadUUID();
+			throw new NoDashSessionBadUUIDException();
 		} catch (BadPaddingException e) {
-			throw new NoDashSessionBadUUID();
+			throw new NoDashSessionBadUUIDException();
 		}
 	}
 

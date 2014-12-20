@@ -1,3 +1,22 @@
+/*
+ * Copyright 2014 David Horscroft
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * The NoSessionSphere stores user sessions and allows their access and 
+ * manipulation with the use of their UUID.
+ */
+
 package nodash.core.spheres;
 
 import java.util.Collections;
@@ -8,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import nodash.core.NoRegister;
 import nodash.exceptions.NoByteSetBadDecryptionException;
 import nodash.exceptions.NoDashFatalException;
-import nodash.exceptions.NoDashSessionBadUUID;
+import nodash.exceptions.NoDashSessionBadUUIDException;
 import nodash.exceptions.NoSessionAlreadyAwaitingConfirmationException;
 import nodash.exceptions.NoSessionConfirmedException;
 import nodash.exceptions.NoSessionExpiredException;
@@ -41,7 +60,7 @@ public final class NoSessionSphere {
 				NoSessionSphere.sessions.remove(uuid);
 				session = null;
 			}
-		} catch (NoDashSessionBadUUID e) {
+		} catch (NoDashSessionBadUUIDException e) {
 			// Suppress, doesn't matter
 		}
 	}
@@ -96,7 +115,7 @@ public final class NoSessionSphere {
 		return session.getEncryptedUUID();
 	}
 	
-	public static NoUser getUser(byte[] encryptedUUID) throws NoDashSessionBadUUID, NoSessionExpiredException, NoSessionConfirmedException  {
+	public static NoUser getUser(byte[] encryptedUUID) throws NoDashSessionBadUUIDException, NoSessionExpiredException, NoSessionConfirmedException  {
 		UUID uuid = NoSession.decryptUUID(encryptedUUID);
 		if (NoSessionSphere.sessions.containsKey(uuid)) {
 			NoSessionSphere.pruneSingle(uuid);
@@ -105,7 +124,7 @@ public final class NoSessionSphere {
 		throw new NoSessionExpiredException();
 	}
 	
-	public static NoState getState(byte[] encryptedUUID) throws NoDashSessionBadUUID, NoSessionExpiredException, NoSessionConfirmedException {
+	public static NoState getState(byte[] encryptedUUID) throws NoDashSessionBadUUIDException, NoSessionExpiredException, NoSessionConfirmedException {
 		UUID uuid = NoSession.decryptUUID(encryptedUUID);
 		if (NoSessionSphere.sessions.containsKey(uuid)) {
 			NoSessionSphere.pruneSingle(uuid);
@@ -115,7 +134,7 @@ public final class NoSessionSphere {
 		throw new NoSessionExpiredException();
 	}
 	
-	public static synchronized byte[] save(byte[] encryptedUUID, char[] password) throws NoDashSessionBadUUID, NoSessionExpiredException, NoSessionConfirmedException, NoSessionNotChangedException, NoSessionAlreadyAwaitingConfirmationException {
+	public static synchronized byte[] save(byte[] encryptedUUID, char[] password) throws NoDashSessionBadUUIDException, NoSessionExpiredException, NoSessionConfirmedException, NoSessionNotChangedException, NoSessionAlreadyAwaitingConfirmationException {
 		UUID uuid = NoSession.decryptUUID(encryptedUUID);
 		if (NoSessionSphere.sessions.containsKey(uuid)) {
 			NoSessionSphere.pruneSingle(uuid);
@@ -131,7 +150,7 @@ public final class NoSessionSphere {
 		throw new NoSessionExpiredException();
 	}
 	
-	public static synchronized void confirm(byte[] encryptedUUID, char[] password, byte[] data) throws NoDashSessionBadUUID, NoSessionExpiredException, NoSessionConfirmedException, NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
+	public static synchronized void confirm(byte[] encryptedUUID, char[] password, byte[] data) throws NoDashSessionBadUUIDException, NoSessionExpiredException, NoSessionConfirmedException, NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
 		UUID uuid = NoSession.decryptUUID(encryptedUUID);
 		if (NoSessionSphere.sessions.containsKey(uuid)) {
 			NoSessionSphere.pruneSingle(uuid);
@@ -149,7 +168,7 @@ public final class NoSessionSphere {
 		result.cookie = session.getEncryptedUUID();
 		try {
 			result.data = NoSessionSphere.save(result.cookie, password);
-		} catch (NoDashSessionBadUUID e) {
+		} catch (NoDashSessionBadUUIDException e) {
 			throw new NoDashFatalException("Immediately generated cookie throwing bad cookie error.");
 		} catch (NoSessionExpiredException e) {
 			throw new NoDashFatalException("Session expired before it was even returned to client.");
