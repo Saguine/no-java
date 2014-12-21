@@ -19,7 +19,7 @@
 
 package nodash.core;
 
-import java.io.File;
+import java.io.IOException;
 import java.security.PublicKey;
 
 import nodash.core.spheres.NoByteSetSphere;
@@ -39,23 +39,31 @@ import nodash.models.NoUser;
 import nodash.models.NoSession.NoState;
 
 public final class NoCore {
-	public static NoConfig config;
+	public static NoConfigInterface config;
 	public static NoHashSphereInterface hashSphere;
 	
+	public static void setup(NoConfigInterface config, NoHashSphereInterface hashSphere) {
+		NoCore.setup(config);
+		NoCore.setup(hashSphere);
+	}
+	
+	public static void setup(NoConfigInterface config) {
+		NoCore.config = config;
+	}
+	
 	public static void setup(NoHashSphereInterface hashSphere) {
-		File configFile = new File(NoConfig.CONFIG_FILENAME);
-		if (configFile.exists()) {
-			config = NoConfig.getNoConfigFromFile(configFile);
-		} else {
-			config = new NoConfig();
-			config.saveNoConfigToFile(configFile);
-		}
 		NoCore.hashSphere = hashSphere;
 		hashSphere.setup();
 	}
 	
 	public static void setup() {
-		NoCore.setup(new NoHashSphereDefault());
+		NoConfigInterface newConfig = new NoConfigDefault();
+		try {
+			newConfig = newConfig.loadNoConfig();
+		} catch (IOException e) {
+			newConfig.construct();
+		}
+		NoCore.setup(newConfig, new NoHashSphereDefault());
 	}
 	
 	public static byte[] login(byte[] data, char[] password) throws NoUserNotValidException, NoUserAlreadyOnlineException, NoSessionExpiredException {

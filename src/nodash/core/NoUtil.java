@@ -86,7 +86,7 @@ public final class NoUtil {
 		} catch (NoSuchAlgorithmException e) {
 			throw new NoDashFatalException("Value for PBE_TYPE is not valid.");
 		}
-		KeySpec spec = new PBEKeySpec(password, NoCore.config.secretKey.getEncoded(), 65536, 256);
+		KeySpec spec = new PBEKeySpec(password, NoCore.config.getSecretKey().getEncoded(), 65536, 256);
 		SecretKey key;
 		try {
 			key = skf.generateSecret(spec);
@@ -147,7 +147,7 @@ public final class NoUtil {
 	}
 	
 	public static byte[] encrypt(byte[] data) {
-		return NoUtil.encrypt(data, NoCore.config.secretKey.getEncoded());
+		return NoUtil.encrypt(data, NoCore.config.getSecretKey().getEncoded());
 	}
 	
 	public static byte[] decrypt(byte[] data, byte[] key) throws IllegalBlockSizeException, BadPaddingException {
@@ -170,7 +170,7 @@ public final class NoUtil {
 	}
 	
 	public static byte[] decrypt(byte[] data) throws IllegalBlockSizeException, BadPaddingException {
-		return NoUtil.decrypt(data, NoCore.config.secretKey.getEncoded());
+		return NoUtil.decrypt(data, NoCore.config.getSecretKey().getEncoded());
 	}
 	
 	public static byte[] encryptRSA(byte[] data, PublicKey publicKey) {

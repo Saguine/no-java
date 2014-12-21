@@ -35,19 +35,19 @@ import javax.crypto.SecretKey;
 
 import nodash.exceptions.NoDashFatalException;
 
-public class NoConfig implements Serializable {
+public class NoConfigDefault implements Serializable, NoConfigInterface {
 	private static final long serialVersionUID = -8498303909736017075L;
 
-	public static final String CONFIG_FILENAME = "noconfig.cfg";
+	private static final String CONFIG_FILENAME = "noconfig.cfg";
 	
-	public SecretKey secretKey;
+	private SecretKey secretKey;
 	
-	public boolean saveDatabase = true;
-	public String databaseFilename = "nodatabase.hash";
-	public boolean saveByteSets = false;
-	public String byteSetFilename = "";
+	private boolean saveDatabase = true;
+	private String databaseFileName = "nodatabase.hash";
+	private boolean saveByteSets = false;
 	
-	public NoConfig() {
+	@Override
+	public void construct() {
 		try {
 			KeyGenerator keyGenerator = KeyGenerator.getInstance(NoUtil.CIPHER_KEY_SPEC);
 			keyGenerator.init(NoUtil.AES_STRENGTH);
@@ -56,9 +56,30 @@ public class NoConfig implements Serializable {
 			throw new NoDashFatalException("Value for CIPHER_KEY_SPEC not valid.");
 		}
 	}
+
+	@Override
+	public SecretKey getSecretKey() {
+		return secretKey;
+	}
+
+	@Override
+	public boolean saveDatabase() {
+		return saveDatabase;
+	}
 	
-	public void saveNoConfigToFile(File file) {
+	public String getDatabaseName() {
+		return databaseFileName;
+	}
+
+	@Override
+	public boolean saveByteSets() {
+		return saveByteSets;
+	}
+
+	@Override
+	public void saveNoConfig() {
 		try {
+			File file = new File(NoConfigDefault.CONFIG_FILENAME);
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ObjectOutputStream oos = new ObjectOutputStream(baos);
 			oos.writeObject(this);
@@ -69,21 +90,19 @@ public class NoConfig implements Serializable {
 			throw new NoDashFatalException("Unable to save config, including generated secret key.");
 		}
 	}
-	
-	public static NoConfig getNoConfigFromFile(File file) {
+
+	@Override
+	public NoConfigInterface loadNoConfig() throws IOException {
+		File file = new File(NoConfigDefault.CONFIG_FILENAME);
+		byte[] data = Files.readAllBytes(file.toPath());
+		ByteArrayInputStream bais = new ByteArrayInputStream(data);
+		ObjectInputStream ois = new ObjectInputStream(bais);
+		NoConfigInterface noConfig;
 		try {
-			byte[] data = Files.readAllBytes(file.toPath());
-			ByteArrayInputStream bais = new ByteArrayInputStream(data);
-			ObjectInputStream ois = new ObjectInputStream(bais);
-			NoConfig noConfig;
-			try {
-				noConfig = (NoConfig) ois.readObject();
-			} catch (ClassNotFoundException e) {
-				throw new NoDashFatalException("Given bytestream does not compile into a configuration object.");
-			}
-			return noConfig;
-		} catch (IOException e) {
-			throw new NoDashFatalException("Instructed to read config from file but unable to do so.");
+			noConfig = (NoConfigDefault) ois.readObject();
+		} catch (ClassNotFoundException e) {
+			throw new NoDashFatalException("Given bytestream does not compile into a configuration object.");
 		}
+		return noConfig;
 	}
 }
