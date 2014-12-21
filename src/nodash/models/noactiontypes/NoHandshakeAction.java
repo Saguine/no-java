@@ -41,6 +41,7 @@ public abstract class NoHandshakeAction extends NoSourcedAction {
 	}
 	
 	public void execute() {
+		this.process();
 		try {
 			NoInfluence influence = this.generateTargetInfluence();
 			if (influence != null) {

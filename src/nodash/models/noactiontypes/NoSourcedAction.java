@@ -41,9 +41,9 @@ public abstract class NoSourcedAction extends NoTargetedAction {
 	}
 	
 	public void execute() {
-		NoInfluence influence;
+		this.process();
 		try {
-			influence = this.generateTargetInfluence();
+			NoInfluence influence = this.generateTargetInfluence();
 			if (influence != null) {
 				NoByteSet byteSet = influence.getByteSet(this.target);
 				NoCore.addByteSet(byteSet, this.target);
