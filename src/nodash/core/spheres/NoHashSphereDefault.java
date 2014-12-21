@@ -98,7 +98,7 @@ public final class NoHashSphereDefault implements NoHashSphereInterface {
 		return this.database.contains(hash);
 	}
 
-	public synchronized int size() {
+	public synchronized long size() {
 		return this.database.size();
 	}
 }

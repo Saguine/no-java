@@ -11,5 +11,5 @@ public interface NoHashSphereInterface {
 	public void insertHash(String hash) throws IOException;
 	public void removeHash(String hash) throws IOException;
 	public boolean checkHash(String hash);
-	public int size();
+	public long size();
 }
