@@ -14,6 +14,8 @@
  * limitations under the License.
  * 
  * The NoHashSpehre stores database hashes for user verification.
+ * 
+ * Must be used with something that uses NoConfigDefault or an extension.
  */
 
 package nodash.core.spheres;
@@ -31,6 +33,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import nodash.core.NoCore;
+import nodash.core.NoConfigDefault;
 import nodash.exceptions.NoDashFatalException;
 import nodash.models.NoUser;
 
@@ -43,12 +46,12 @@ public final class NoHashSphereDefault implements NoHashSphereInterface {
 	}
 	
 	public NoHashSphereDefault() {
-		this.fileName = NoCore.config.databaseFilename;
+		this.fileName = ( (NoConfigDefault) NoCore.config).getDatabaseName();
 	}
 	
 	@SuppressWarnings("unchecked")
 	public void setup() {
-		if (NoCore.config.saveDatabase) {
+		if (NoCore.config.saveDatabase()) {
 			File file = new File(this.fileName);
 			if (file.exists()) {
 				try {
@@ -74,7 +77,7 @@ public final class NoHashSphereDefault implements NoHashSphereInterface {
 		byte[] data = baos.toByteArray();
 		oos.close();
 		baos.close();
-		File file = new File(NoCore.config.databaseFilename);
+		File file = new File( ( (NoConfigDefault) NoCore.config).getDatabaseName());
 		Files.write(file.toPath(), data, StandardOpenOption.CREATE);
 	}
 	
