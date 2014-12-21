@@ -28,39 +28,15 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
-import java.security.NoSuchAlgorithmException;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 
 import nodash.exceptions.NoDashFatalException;
 
-public class NoConfigDefault implements Serializable, NoConfigInterface {
+public final class NoConfigDefault extends NoConfigBase implements Serializable {
 	private static final long serialVersionUID = -8498303909736017075L;
 
 	private static final String CONFIG_FILENAME = "noconfig.cfg";
 	
-	private SecretKey secretKey;
-	
-	private boolean saveDatabase = true;
 	private String databaseFileName = "nodatabase.hash";
-	private boolean saveByteSets = false;
-	
-	@Override
-	public void construct() {
-		try {
-			KeyGenerator keyGenerator = KeyGenerator.getInstance(NoUtil.CIPHER_KEY_SPEC);
-			keyGenerator.init(NoUtil.AES_STRENGTH);
-			this.secretKey = keyGenerator.generateKey();
-		} catch (NoSuchAlgorithmException e) {
-			throw new NoDashFatalException("Value for CIPHER_KEY_SPEC not valid.");
-		}
-	}
-
-	@Override
-	public SecretKey getSecretKey() {
-		return secretKey;
-	}
 
 	@Override
 	public boolean saveDatabase() {
