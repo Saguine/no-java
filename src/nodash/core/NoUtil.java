@@ -134,6 +134,7 @@ public final class NoUtil {
 		try {
 			cipher.init(Cipher.ENCRYPT_MODE, secretKey);
 		} catch (InvalidKeyException e) {
+			e.printStackTrace();
 			throw new NoDashFatalException("Secret key is invalid.");
 		}
 		
@@ -163,6 +164,7 @@ public final class NoUtil {
 		try {
 			cipher.init(Cipher.DECRYPT_MODE, secretKey);
 		} catch (InvalidKeyException e) {
+			e.printStackTrace();
 			throw new NoDashFatalException("Secret key is invalid.");
 		}
 		
