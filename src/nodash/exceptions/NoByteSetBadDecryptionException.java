@@ -19,8 +19,6 @@
 
 package nodash.exceptions;
 
-import javax.crypto.BadPaddingException;
-
 public class NoByteSetBadDecryptionException extends NoDashException {
 	private static final long serialVersionUID = -8579497499272656543L;
 		
