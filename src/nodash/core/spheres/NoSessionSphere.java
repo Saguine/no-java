@@ -119,7 +119,11 @@ public final class NoSessionSphere {
 		UUID uuid = NoSession.decryptUUID(encryptedUUID);
 		if (NoSessionSphere.sessions.containsKey(uuid)) {
 			NoSessionSphere.pruneSingle(uuid);
-			return NoSessionSphere.sessions.get(uuid).getNoUser();
+			try {
+				return NoSessionSphere.sessions.get(uuid).getNoUser();
+			} catch (NullPointerException e) {
+				throw new NoSessionExpiredException();
+			}
 		}
 		throw new NoSessionExpiredException();
 	}
