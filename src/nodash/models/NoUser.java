@@ -87,7 +87,7 @@ public class NoUser implements Serializable {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ObjectOutputStream oos = new ObjectOutputStream(baos);
 			oos.writeObject(this);
-			byte[] encrypted = NoUtil.encryptByteArray(baos.toByteArray(), password);
+			byte[] encrypted = NoUtil.encrypt(baos.toByteArray(), password);
 			oos.close();
 			baos.close();
 			return encrypted;
@@ -165,7 +165,7 @@ public class NoUser implements Serializable {
 	}
 	
 	public static NoUser createUserFromFile(byte[] data, char[] password) throws IllegalBlockSizeException, BadPaddingException, IOException, ClassNotFoundException {
-		byte[] decrypted = NoUtil.decryptByteArray(data, password);
+		byte[] decrypted = NoUtil.decrypt(data, password);
 		ByteArrayInputStream bais = new ByteArrayInputStream(decrypted);
 		ObjectInputStream ois = new ObjectInputStream(bais);
 		NoUser noUser = (NoUser) ois.readObject();

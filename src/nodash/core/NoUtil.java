@@ -79,7 +79,7 @@ public final class NoUtil {
 		}
 	}
 
-	public static byte[] getPBEKeyFromPassword(char[] password) {
+	private static byte[] getPBEKeyFromPassword(char[] password) {
 		SecretKeyFactory skf;
 		try {
 			skf = SecretKeyFactory.getInstance(NoUtil.PBE_TYPE);
@@ -106,14 +106,14 @@ public final class NoUtil {
 		}
 	}
 	
-	public static byte[] decryptByteArray(byte[] data, char[] password) throws IllegalBlockSizeException, BadPaddingException {
+	public static byte[] decrypt(byte[] data, char[] password) throws IllegalBlockSizeException, BadPaddingException {
 		byte[] passwordByte = NoUtil.getPBEKeyFromPassword(password);
 		byte[] response = NoUtil.decrypt(NoUtil.decrypt(data), passwordByte);
 		NoUtil.wipeBytes(passwordByte);
 		return response;
 	}
 	
-	public static byte[] encryptByteArray(byte[] data, char[] password) {
+	public static byte[] encrypt(byte[] data, char[] password) {
 		byte[] passwordByte = NoUtil.getPBEKeyFromPassword(password);
 		byte[] response = NoUtil.encrypt(NoUtil.encrypt(data, passwordByte));
 		NoUtil.wipeBytes(passwordByte);
