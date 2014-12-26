@@ -98,7 +98,7 @@ public final class NoSessionSphere {
 			try {
 				session.consume(nbs);
 			} catch (NoByteSetBadDecryptionException e) {
-				e.printStackTrace();
+				throw new NoDashFatalException("Bad byte sets on consumption.", e);
 			}
 		}	/* 2.2 Alternatively, no NoByteSets to consume */
 		
@@ -173,15 +173,15 @@ public final class NoSessionSphere {
 		try {
 			result.data = NoSessionSphere.save(result.cookie, password);
 		} catch (NoDashSessionBadUUIDException e) {
-			throw new NoDashFatalException("Immediately generated cookie throwing bad cookie error.");
+			throw new NoDashFatalException("Immediately generated cookie throwing bad cookie error.", e);
 		} catch (NoSessionExpiredException e) {
-			throw new NoDashFatalException("Session expired before it was even returned to client.");
+			throw new NoDashFatalException("Session expired before it was even returned to client.", e);
 		} catch (NoSessionConfirmedException e) {
-			throw new NoDashFatalException("Session is in confirmed state before it was returned to client.");
+			throw new NoDashFatalException("Session is in confirmed state before it was returned to client.", e);
 		} catch (NoSessionNotChangedException e) {
-			throw new NoDashFatalException("Session claims to be unchanged but user is newly registered.");
+			throw new NoDashFatalException("Session claims to be unchanged but user is newly registered.", e);
 		} catch (NoSessionAlreadyAwaitingConfirmationException e) {
-			throw new NoDashFatalException("Session claims to be awaiting confirmation before returning data to the user.");
+			throw new NoDashFatalException("Session claims to be awaiting confirmation before returning data to the user.", e);
 		}
 		return result;
 	}

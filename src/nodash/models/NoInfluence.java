@@ -50,7 +50,7 @@ public abstract class NoInfluence implements Serializable {
 		try {
 			keyGen = KeyGenerator.getInstance(NoUtil.CIPHER_KEY_SPEC);
 		} catch (NoSuchAlgorithmException e) {
-			throw new NoDashFatalException("Value for CIPHER_KEY_SPEC is not valid.");
+			throw new NoDashFatalException("Value for CIPHER_KEY_SPEC is not valid.", e);
 		}
 		keyGen.init(NoUtil.AES_STRENGTH);
 		SecretKey secretKey = keyGen.generateKey();
@@ -72,7 +72,7 @@ public abstract class NoInfluence implements Serializable {
 			baos.close();
 			return encrypted;
 		} catch (IOException e) {
-			throw new NoDashFatalException("Unable to write NoInfluence object to byte stream.");
+			throw new NoDashFatalException("Unable to write NoInfluence object to byte stream.", e);
 		}
 	}
 	
@@ -86,7 +86,7 @@ public abstract class NoInfluence implements Serializable {
 			bais.close();
 			return noInfluence;
 		} catch (IOException e) {
-			throw new NoDashFatalException("Unable to read out provided data stream.");
+			throw new NoDashFatalException("Unable to read out provided data stream.", e);
 		}
 	}
 	

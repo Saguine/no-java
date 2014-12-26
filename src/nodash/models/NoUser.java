@@ -45,6 +45,7 @@ import javax.crypto.spec.SecretKeySpec;
 import sun.security.rsa.RSAPublicKeyImpl;
 import nodash.core.NoUtil;
 import nodash.exceptions.NoByteSetBadDecryptionException;
+import nodash.exceptions.NoDashFatalException;
 
 public class NoUser implements Serializable {
 	private static final long serialVersionUID = 7132405837081692211L;
@@ -57,19 +58,26 @@ public class NoUser implements Serializable {
 	private ArrayList<NoAction> outgoing = new ArrayList<NoAction>();
 	
 	public NoUser()  {
+		KeyPairGenerator kpg;
 		try {
-			KeyPairGenerator kpg = KeyPairGenerator.getInstance(NoUtil.KEYPAIR_ALGORITHM);
-			kpg.initialize(NoUtil.RSA_STRENGTH, SecureRandom.getInstance(NoUtil.SECURERANDOM_ALGORITHM, NoUtil.SECURERANDOM_PROVIDER));
-			KeyPair keyPair = kpg.generateKeyPair();
-			this.publicKey = keyPair.getPublic();
-			this.privateKey = keyPair.getPrivate();
-			this.influences = 0;
-			this.actions = 0;
+			kpg = KeyPairGenerator.getInstance(NoUtil.KEYPAIR_ALGORITHM);
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (NoSuchProviderException e) {
-			e.printStackTrace();
+			throw new NoDashFatalException("Value for KEYPAIR_ALGORITHM is not valid.", e);
 		}
+
+		try {
+			kpg.initialize(NoUtil.RSA_STRENGTH, SecureRandom.getInstance(NoUtil.SECURERANDOM_ALGORITHM, NoUtil.SECURERANDOM_PROVIDER));
+		} catch (NoSuchAlgorithmException e) {
+			throw new NoDashFatalException("Value for SECURERANDOM_ALGORITHM not valid.", e);
+		} catch (NoSuchProviderException e) {
+			throw new NoDashFatalException("Value for SECURERANDOM_PROVIDER not valid.", e);
+		}
+		
+		KeyPair keyPair = kpg.generateKeyPair();
+		this.publicKey = keyPair.getPublic();
+		this.privateKey = keyPair.getPrivate();
+		this.influences = 0;
+		this.actions = 0;
 	}
 
 	public final byte[] createFile(char[] password) {
@@ -84,11 +92,10 @@ public class NoUser implements Serializable {
 			baos.close();
 			return encrypted;
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new NoDashFatalException("IO Exception encountered while generating encrypted user file byte stream.", e);
 		} finally {
 			this.outgoing = temp;
 		}
-		return null;
 	}
 	
 	public final byte[] createHash() {
@@ -101,11 +108,10 @@ public class NoUser implements Serializable {
 			byte[] userBytes = baos.toByteArray();
 			return NoUtil.getHashFromByteArray(userBytes);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new NoDashFatalException("IO Exception encountered while generating user hash.", e);
 		} finally {
 			this.outgoing = temp;
 		}
-		return null;
 	} 
 	
 	public final String createHashString() {

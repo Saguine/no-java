@@ -63,7 +63,7 @@ public final class NoConfigDefault extends NoConfigBase implements Serializable 
 		
 			Files.write(file.toPath(), data, StandardOpenOption.CREATE_NEW);
 		} catch (IOException e) {
-			throw new NoDashFatalException("Unable to save config, including generated secret key.");
+			throw new NoDashFatalException("Unable to save config, including generated secret key.", e);
 		}
 	}
 
@@ -77,7 +77,7 @@ public final class NoConfigDefault extends NoConfigBase implements Serializable 
 		try {
 			noConfig = (NoConfigDefault) ois.readObject();
 		} catch (ClassNotFoundException e) {
-			throw new NoDashFatalException("Given bytestream does not compile into a configuration object.");
+			throw new NoDashFatalException("Given bytestream does not compile into a configuration object.", e);
 		}
 		return noConfig;
 	}

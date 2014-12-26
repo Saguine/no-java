@@ -8,6 +8,9 @@ import java.util.UUID;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
+import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
+import com.sun.org.apache.xml.internal.security.utils.Base64;
+
 import nodash.core.NoCore;
 import nodash.core.NoUtil;
 import nodash.exceptions.NoByteSetBadDecryptionException;
@@ -109,7 +112,8 @@ public final class NoSession implements Serializable {
 		return file;
 	}
 	
-	public void confirmSave(byte[] confirmData, char[] password) throws NoSessionConfirmedException, NoSessionExpiredException, NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
+	public void confirmSave(byte[] confirmData, char[] password) throws NoSessionConfirmedException, NoSessionExpiredException, 
+			NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
 		this.check();
 		if (this.state != NoState.AWAITING_CONFIRMATION) {
 			throw new NoSessionNotAwaitingConfirmationException();
@@ -138,15 +142,14 @@ public final class NoSession implements Serializable {
 				try {
 					NoCore.hashSphere.removeHash(this.original.createHashString());
 				} catch (IOException e) {
-					throw new NoDashFatalException("Unable to remove hash on confirm.");
+					throw new NoDashFatalException("Unable to remove hash on confirm.", e);
 				}
 			}
 			/* 5.2.2: add new hash to array */
 			try {
 				NoCore.hashSphere.insertHash(this.current.createHashString());
 			} catch (IOException e) {
-				e.printStackTrace();
-				throw new NoDashFatalException("Unable to remove hash on confirm.");
+				throw new NoDashFatalException("Unable to remove hash on confirm.", e);
 			}
 			
 			/* 5.2.3: clear influences as they will not need to be re-applied */
@@ -185,7 +188,11 @@ public final class NoSession implements Serializable {
 	}
 	
 	public byte[] getEncryptedUUID() {
-		return NoUtil.encrypt(this.uuid.toString().getBytes());
+		try {
+			return NoUtil.encrypt(Base64.decode(this.uuid.toString()));
+		} catch (Base64DecodingException e) {
+			throw new NoDashFatalException("Base64DecodingException while decoding session UUID.", e);
+		}
 	}
 	
 	public String getEncryptedUUIDAsString() {

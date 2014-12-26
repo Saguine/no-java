@@ -48,7 +48,7 @@ public abstract class NoTargetedAction extends NoAction {
 			}
 		} catch (NoCannotGetInfluenceException e) {
 			if (e.getResponseInfluence() != null) {
-				throw new NoDashFatalException("Unsourced action has generated an error with an undeliverable influence.");
+				throw new NoDashFatalException("Unsourced action has generated an error with an undeliverable influence.", e);
 			}
 		}
 	}

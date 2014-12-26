@@ -28,4 +28,8 @@ public class NoDashFatalException extends RuntimeException {
 	public NoDashFatalException(String string) {
 		super(string);
 	}
+	
+	public NoDashFatalException(String string, Exception e) {
+		super(string, e);
+	}
 }

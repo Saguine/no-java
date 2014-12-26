@@ -62,9 +62,9 @@ public final class NoHashSphereDefault implements NoHashSphereInterface {
 					ois.close();
 					bais.close();
 				} catch (IOException e){
-					throw new NoDashFatalException("Unable to load up given database file.");
+					throw new NoDashFatalException("Unable to load up given database file.", e);
 				} catch (ClassNotFoundException e) {
-					throw new NoDashFatalException("Database file not in a verifiable format.");
+					throw new NoDashFatalException("Database file not in a verifiable format.", e);
 				}
 			}
 		}

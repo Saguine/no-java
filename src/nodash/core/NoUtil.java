@@ -84,14 +84,14 @@ public final class NoUtil {
 		try {
 			skf = SecretKeyFactory.getInstance(NoUtil.PBE_TYPE);
 		} catch (NoSuchAlgorithmException e) {
-			throw new NoDashFatalException("Value for PBE_TYPE is not valid.");
+			throw new NoDashFatalException("Value for PBE_TYPE is not valid.", e);
 		}
 		KeySpec spec = new PBEKeySpec(password, NoCore.config.getSecretKey().getEncoded(), 65536, 256);
 		SecretKey key;
 		try {
 			key = skf.generateSecret(spec);
 		} catch (InvalidKeySpecException e) {
-			throw new NoDashFatalException("PBE manager unable to derive key from password.");
+			throw new NoDashFatalException("PBE manager unable to derive key from password.", e);
 		}
 		NoUtil.wipeChars(password);
 		return key.getEncoded();
@@ -102,9 +102,8 @@ public final class NoUtil {
 			MessageDigest messageDigest = MessageDigest.getInstance(NoUtil.DIGEST_TYPE);
 			return messageDigest.digest(bytes);
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			throw new NoDashFatalException("Value for DIGEST_TYPE not valid.", e);
 		}
-		return null;
 	}
 	
 	public static byte[] decryptByteArray(byte[] data, char[] password) throws IllegalBlockSizeException, BadPaddingException {
@@ -126,24 +125,23 @@ public final class NoUtil {
 		try {
 			cipher = Cipher.getInstance(NoUtil.CIPHER_TYPE);
 		} catch (NoSuchAlgorithmException e) {
-			throw new NoDashFatalException("Value for CIPHER_TYPE is not valid (no such algorithm).");
+			throw new NoDashFatalException("Value for CIPHER_TYPE is not valid (no such algorithm).", e);
 		} catch (NoSuchPaddingException e) {
-			throw new NoDashFatalException("Value for CIPHER_TYPE is not valid (no such padding).");
+			throw new NoDashFatalException("Value for CIPHER_TYPE is not valid (no such padding).", e);
 		}
 		SecretKeySpec secretKey = new SecretKeySpec(key, NoUtil.CIPHER_KEY_SPEC);
 		try {
 			cipher.init(Cipher.ENCRYPT_MODE, secretKey);
 		} catch (InvalidKeyException e) {
-			e.printStackTrace();
-			throw new NoDashFatalException("Secret key is invalid.");
+			throw new NoDashFatalException("Secret key is invalid.", e);
 		}
 		
 		try {
 			return cipher.doFinal(data);
 		} catch (IllegalBlockSizeException e) {
-			throw new NoDashFatalException("Block size exception encountered during encryption.");
+			throw new NoDashFatalException("Block size exception encountered during encryption.", e);
 		} catch (BadPaddingException e) {
-			throw new NoDashFatalException("Bad padding exception encountered during encryption.");
+			throw new NoDashFatalException("Bad padding exception encountered during encryption.", e);
 		}
 	}
 	
@@ -156,16 +154,15 @@ public final class NoUtil {
 		try {
 			cipher = Cipher.getInstance(NoUtil.CIPHER_TYPE);
 		} catch (NoSuchAlgorithmException e) {
-			throw new NoDashFatalException("Value for CIPHER_TYPE is not valid (no such algorithm).");
+			throw new NoDashFatalException("Value for CIPHER_TYPE is not valid (no such algorithm).", e);
 		} catch (NoSuchPaddingException e) {
-			throw new NoDashFatalException("Value for CIPHER_TYPE is not valid (no such padding).");
+			throw new NoDashFatalException("Value for CIPHER_TYPE is not valid (no such padding).", e);
 		}
 		SecretKeySpec secretKey = new SecretKeySpec(key, NoUtil.CIPHER_KEY_SPEC);
 		try {
 			cipher.init(Cipher.DECRYPT_MODE, secretKey);
 		} catch (InvalidKeyException e) {
-			e.printStackTrace();
-			throw new NoDashFatalException("Secret key is invalid.");
+			throw new NoDashFatalException("Secret key is invalid.", e);
 		}
 		
 		return cipher.doFinal(data);
@@ -180,19 +177,19 @@ public final class NoUtil {
 		try {
 			cipher = Cipher.getInstance(NoUtil.CIPHER_RSA_TYPE);
 		} catch (NoSuchAlgorithmException e) {
-			throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such algorithm).");
+			throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such algorithm).", e);
 		} catch (NoSuchPaddingException e) {
-			throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such padding).");
+			throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such padding).", e);
 		}
 		try {
 			cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 			return cipher.doFinal(data);
 		} catch (InvalidKeyException e){
-			throw new NoDashFatalException("Public key invalid.");
+			throw new NoDashFatalException("Public key invalid.", e);
 		} catch (IllegalBlockSizeException e) {
-			throw new NoDashFatalException("Unable to encrypt data stream with public key.");
+			throw new NoDashFatalException("Unable to encrypt data stream with public key.", e);
 		} catch (BadPaddingException e) {
-			throw new NoDashFatalException("Unable to encrypt data stream with public key.");
+			throw new NoDashFatalException("Unable to encrypt data stream with public key.", e);
 		}
 	}
 	
@@ -201,9 +198,9 @@ public final class NoUtil {
 		try {
 			cipher = Cipher.getInstance(NoUtil.CIPHER_RSA_TYPE);
 		} catch (NoSuchAlgorithmException e) {
-			throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such algorithm).");
+			throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such algorithm).", e);
 		} catch (NoSuchPaddingException e) {
-			throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such padding).");
+			throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such padding).", e);
 		}
 		cipher.init(Cipher.DECRYPT_MODE, privateKey);
 		return cipher.doFinal(data);	

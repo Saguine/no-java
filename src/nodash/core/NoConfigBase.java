@@ -19,7 +19,7 @@ public abstract class NoConfigBase implements NoConfigInterface {
 			keyGenerator.init(NoUtil.AES_STRENGTH);
 			this.secretKey = keyGenerator.generateKey();
 		} catch (NoSuchAlgorithmException e) {
-			throw new NoDashFatalException("Value for CIPHER_KEY_SPEC not valid.");
+			throw new NoDashFatalException("Value for CIPHER_KEY_SPEC not valid.", e);
 		}
 	}
 
