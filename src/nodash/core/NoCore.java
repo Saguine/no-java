@@ -63,7 +63,8 @@ public final class NoCore {
 		} catch (IOException e) {
 			newConfig.construct();
 		}
-		NoCore.setup(newConfig, new NoHashSphereDefault());
+		NoCore.setup(newConfig);
+		NoCore.setup(new NoHashSphereDefault());
 	}
 	
 	public static byte[] login(byte[] data, char[] password) throws NoUserNotValidException, NoUserAlreadyOnlineException, NoSessionExpiredException {

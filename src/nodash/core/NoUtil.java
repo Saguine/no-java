@@ -59,7 +59,7 @@ public final class NoUtil {
 		return result;
 	}
 	
-	public static byte[] charToBytes(char[] array) {
+	public static byte[] charsToBytes(char[] array) {
 		byte[] result = new byte[array.length];
 		for (int x=0; x<array.length; x++) {
 			result[x] = (byte) array[x];
