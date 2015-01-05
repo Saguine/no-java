@@ -12,4 +12,5 @@ public interface NoHashSphereInterface {
 	public void removeHash(String hash) throws IOException;
 	public boolean checkHash(String hash);
 	public long size();
+	public boolean isReady();
 }

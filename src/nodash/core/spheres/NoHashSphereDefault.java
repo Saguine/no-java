@@ -40,6 +40,7 @@ import nodash.models.NoUser;
 public final class NoHashSphereDefault implements NoHashSphereInterface {
 	private Set<String> database = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 	private String fileName;
+	private boolean ready = false;
 	
 	public NoHashSphereDefault(String fileName) {
 		this.fileName = fileName;
@@ -68,6 +69,7 @@ public final class NoHashSphereDefault implements NoHashSphereInterface {
 				}
 			}
 		}
+		this.ready = true;
 	}
 	
 	public synchronized void saveToFile() throws IOException {
@@ -103,5 +105,10 @@ public final class NoHashSphereDefault implements NoHashSphereInterface {
 
 	public synchronized long size() {
 		return this.database.size();
+	}
+
+	@Override
+	public boolean isReady() {
+		return this.ready;
 	}
 }
