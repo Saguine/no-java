@@ -208,6 +208,10 @@ public final class NoSession implements Serializable {
 	}
 	
 	public static UUID decryptUUID(byte[] data) throws NoDashSessionBadUUIDException {
+		if (data == null) {
+			throw new NoDashSessionBadUUIDException();
+		}
+		
 		try {
 			return UUID.fromString(new String(NoUtil.decrypt(data)));
 		} catch (IllegalBlockSizeException e) {
