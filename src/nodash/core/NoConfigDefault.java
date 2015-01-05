@@ -79,6 +79,12 @@ public final class NoConfigDefault extends NoConfigBase implements Serializable 
 		} catch (ClassNotFoundException e) {
 			throw new NoDashFatalException("Given bytestream does not compile into a configuration object.", e);
 		}
+		this.ready = true;
 		return noConfig;
+	}
+
+	@Override
+	public boolean isReady() {
+		return this.ready;
 	}
 }

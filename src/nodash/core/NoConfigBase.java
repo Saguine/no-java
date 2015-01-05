@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 import nodash.exceptions.NoDashFatalException;
 
 public abstract class NoConfigBase implements NoConfigInterface {
+	protected boolean ready;
 	protected SecretKey secretKey;
 	protected boolean saveDatabase;
 	protected boolean saveByteSets;
@@ -26,6 +27,7 @@ public abstract class NoConfigBase implements NoConfigInterface {
 	@Override
 	public void construct() {
 		this.generateSecretKey();
+		this.ready = true;
 	}
 
 	@Override

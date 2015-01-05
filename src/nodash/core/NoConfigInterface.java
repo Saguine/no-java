@@ -11,4 +11,5 @@ public interface NoConfigInterface {
 	public boolean saveByteSets();
 	public void saveNoConfig();
 	public NoConfigInterface loadNoConfig() throws IOException;
+	public boolean isReady();
 }
