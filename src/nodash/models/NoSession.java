@@ -8,8 +8,7 @@ import java.util.UUID;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
-import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
-import com.sun.org.apache.xml.internal.security.utils.Base64;
+import org.apache.commons.codec.binary.Base64;
 
 import nodash.core.NoCore;
 import nodash.core.NoUtil;
@@ -188,11 +187,7 @@ public final class NoSession implements Serializable {
 	}
 	
 	public byte[] getEncryptedUUID() {
-		try {
-			return NoUtil.encrypt(Base64.decode(this.uuid.toString()));
-		} catch (Base64DecodingException e) {
-			throw new NoDashFatalException("Base64DecodingException while decoding session UUID.", e);
-		}
+		return NoUtil.encrypt(Base64.encodeBase64(this.uuid.toString().getBytes()));
 	}
 	
 	public String getEncryptedUUIDAsString() {
@@ -213,8 +208,10 @@ public final class NoSession implements Serializable {
 		}
 		
 		try {
-			return UUID.fromString(new String(NoUtil.decrypt(data)));
-		} catch (IllegalBlockSizeException e) {
+			return UUID.fromString(new String(Base64.decodeBase64(NoUtil.decrypt(data))));
+		} catch (IllegalArgumentException e) {
+			throw new NoDashSessionBadUUIDException();
+		}catch (IllegalBlockSizeException e) {
 			throw new NoDashSessionBadUUIDException();
 		} catch (BadPaddingException e) {
 			throw new NoDashSessionBadUUIDException();

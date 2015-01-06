@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.codec.binary.Base64;
+
 import nodash.core.NoRegister;
 import nodash.exceptions.NoByteSetBadDecryptionException;
 import nodash.exceptions.NoDashFatalException;
@@ -42,7 +44,7 @@ import nodash.models.NoSession.NoState;
 
 public final class NoSessionSphere {
 	private static ConcurrentHashMap<UUID, NoSession> sessions = new ConcurrentHashMap<UUID, NoSession>();
-	private static Set<byte[]> originalHashesOnline = Collections.newSetFromMap(new ConcurrentHashMap<byte[], Boolean>());
+	private static Set<String> originalHashesOnline = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 	
 	public static synchronized void prune() {
 		for (UUID uuid : NoSessionSphere.sessions.keySet()) {
@@ -56,7 +58,7 @@ public final class NoSessionSphere {
 			if (NoSessionSphere.sessions.containsKey(uuid)) {
 				NoSession session = NoSessionSphere.sessions.get(uuid);
 				NoByteSetSphere.addList(session.incoming, session.current.getRSAPublicKey());
-				NoSessionSphere.originalHashesOnline.remove(session.getOriginalHash());
+				NoSessionSphere.originalHashesOnline.remove(Base64.encodeBase64String(session.getOriginalHash()));
 				NoSessionSphere.sessions.remove(uuid);
 				session = null;
 			}
@@ -84,11 +86,11 @@ public final class NoSessionSphere {
 		/* 1. Login with byte[] data and byte[] password */
 		NoSession session = new NoSession(data, password);
 		/* 1.1. User currently has an online session, must wait for it to expire. */
-		if (originalHashesOnline.contains(session.getOriginalHash())) {
+		if (originalHashesOnline.contains(Base64.encodeBase64String(session.getOriginalHash()))) {
 			throw new NoUserAlreadyOnlineException();
 		}
 		/* 1.2. User successfully logged in: set up session records. */
-		NoSessionSphere.originalHashesOnline.add(session.getOriginalHash());
+		NoSessionSphere.originalHashesOnline.add(Base64.encodeBase64String(session.getOriginalHash()));
 		NoSessionSphere.sessions.put(session.uuid, session);
 		
 		/* 2. Check NoByteSetSphere for incoming Influences */

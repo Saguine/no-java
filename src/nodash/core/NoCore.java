@@ -50,18 +50,15 @@ public final class NoCore {
 	public static void setup(NoConfigInterface config, NoHashSphereInterface hashSphere) {
 		NoCore.setup(config);
 		NoCore.setup(hashSphere);
-		com.sun.org.apache.xml.internal.security.Init.init();
 	}
 	
 	public static void setup(NoConfigInterface config) {
 		NoCore.config = config;
-		com.sun.org.apache.xml.internal.security.Init.init();
 	}
 	
 	public static void setup(NoHashSphereInterface hashSphere) {
 		NoCore.hashSphere = hashSphere;
 		hashSphere.setup();
-		com.sun.org.apache.xml.internal.security.Init.init();
 	}
 	
 	public static void setup() {
@@ -73,7 +70,6 @@ public final class NoCore {
 		}
 		NoCore.setup(newConfig);
 		NoCore.setup(new NoHashSphereDefault());
-		com.sun.org.apache.xml.internal.security.Init.init();
 	}
 	
 	public static byte[] login(byte[] data, char[] password) throws NoUserNotValidException, NoUserAlreadyOnlineException, NoSessionExpiredException {
