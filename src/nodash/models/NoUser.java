@@ -35,6 +35,7 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.ArrayList;
 
 import javax.crypto.BadPaddingException;
@@ -157,7 +158,11 @@ public class NoUser implements Serializable {
 	}
 	
 	public final PublicKey getRSAPublicKey() {
-		return (RSAPublicKeyImpl) this.publicKey;
+		try {
+			return new RSAPublicKeyImpl(this.getModulus(), this.getPublicExponent());
+		} catch (InvalidKeyException e) {
+			throw new NoDashFatalException("Invalid key while re-generating a RSAPublicKey.", e);
+		}
 	}
 	
 	private final byte[] decryptRSA(byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
