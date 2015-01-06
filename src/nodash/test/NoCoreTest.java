@@ -1,7 +1,10 @@
 package nodash.test;
 
 import java.io.UnsupportedEncodingException;
+import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
@@ -9,17 +12,31 @@ import javax.crypto.IllegalBlockSizeException;
 
 import org.apache.commons.codec.binary.Base64;
 
+import sun.security.rsa.RSAPublicKeyImpl;
 import nodash.core.NoCore;
 import nodash.core.NoRegister;
 import nodash.exceptions.NoDashSessionBadUUIDException;
 import nodash.exceptions.NoSessionConfirmedException;
+import nodash.exceptions.NoSessionExpiredException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoSession.NoState;
 
 public class NoCoreTest {
-	private static final String CHANGE = "change-string";
-	private static final String CHANGE2 = "different-value";
+	private static final String[] CHANGE = new String[] {
+		"first-string",
+		"second-string",
+		"third-string",
+		"forth-string",
+		"fifth-string",
+		"sixth-string",
+		"seventh-string",
+		"eighth-string",
+		"ninth-string",
+		"tenth-string"
+	};
+	private static Iterator<String> CHANGES = Arrays.asList(CHANGE).iterator();
+	
 	private static final String PASSWORD = "password";
 	private static final String BAD_PASSWORD = "bad-password";
 	private static final Logger logger = Logger.getLogger("NoCoreTest");
@@ -112,7 +129,7 @@ public class NoCoreTest {
 	public static boolean testRegistrationFailureBadCookie() {
 		printIf("Testing registration failure with a bad cookie.");
 		checkSetup();
-		NoUserTest user = new NoUserTest(CHANGE);
+		NoUserTest user = new NoUserTest(CHANGE[0]);
 		NoRegister register = NoCore.register(user, PASSWORD.toCharArray());
 		byte[] cookie = modifyByteArray(register.cookie);
 		try {
@@ -131,7 +148,7 @@ public class NoCoreTest {
 	public static boolean testRegistrationFailureBadData() {
 		printIf("Testing registration failure with a bad data stream.");
 		checkSetup();
-		NoUserTest user = new NoUserTest(CHANGE);
+		NoUserTest user = new NoUserTest(CHANGE[0]);
 		NoRegister register = NoCore.register(user, PASSWORD.toCharArray());
 		byte[] data = modifyByteArray(register.data);
 		try {
@@ -150,7 +167,7 @@ public class NoCoreTest {
 	public static boolean testRegistrationFailureBadPassword() {
 		printIf("Testing registration failure with a bad password.");
 		checkSetup();
-		NoUserTest user = new NoUserTest(CHANGE);
+		NoUserTest user = new NoUserTest(CHANGE[0]);
 		NoRegister register = NoCore.register(user, PASSWORD.toCharArray());
 		try {
 			NoCore.confirm(register.cookie, BAD_PASSWORD.toCharArray(), register.data);
@@ -183,7 +200,7 @@ public class NoCoreTest {
 		printIf("Testing successful registration.");
 		checkSetup();
 
-		NoUserTest user = new NoUserTest(CHANGE);
+		NoUserTest user = new NoUserTest(CHANGE[0]);
 		NoRegister register = NoCore.register(user, PASSWORD.toCharArray());
 		try {
 			NoCore.confirm(register.cookie, PASSWORD.toCharArray(), copy(register.data));
@@ -243,7 +260,7 @@ public class NoCoreTest {
 	private static byte[] registerAndGetBytes() {
 		printIf("Registering...");
 
-		NoUserTest user = new NoUserTest(CHANGE);
+		NoUserTest user = new NoUserTest(CHANGES.next());
 		printIf("Generated user, changeableString: " + user.getChangableString());
 		NoRegister register = NoCore.register(user, PASSWORD.toCharArray());
 		byte[] userFile = copy(register.data);
@@ -433,7 +450,8 @@ public class NoCoreTest {
 			return false;
 		}
 		printIf("User object received.");
-		user.setChangableString(CHANGE2);
+		String original = user.getChangableString();
+		user.setChangableString(CHANGES.next());
 		
 		NoState stateModified;
 		try {
@@ -523,13 +541,201 @@ public class NoCoreTest {
 		}
 		printIf("User object received on second login.");
 		
-		if (user.getChangableString().equals(CHANGE2)) {
+		if (!user.getChangableString().equals(original)) {
 			printIf("Changable string has changed and saved.");
+			NoCore.shred(cookie);
 			return true;
 		} else {
 			logger.severe("Changable string has not changed.");
+			NoCore.shred(cookie);
 			return false;
 		}
+	}
+	
+	public static boolean testActionInfluenceLifecycle(byte[] data) {
+		printIf("Testing an action-influence cycle between two users.");
+		checkSetup();
+		
+		// First, log in, get the user Public Address and save the current name, log out
+		PublicKey address;
+		String currentString;
+		byte[] cookie = null;
+		try {
+			cookie = NoCore.login(copy(data), PASSWORD.toCharArray());
+			NoUserTest user = (NoUserTest) NoCore.getUser(cookie);
+			address = user.getRSAPublicKey();
+			currentString = user.getChangableString();
+		} catch (Exception e) {
+			logger.severe("Error thrown on address-getting login, gotten address and string, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		} finally {
+			NoCore.shred(cookie);
+		}
+		printIf("Got public address.");
+		
+		// Create a second user
+		byte[] secondUserData = registerAndGetBytes();
+		byte[] secondUserCookie;
+		try {
+			secondUserCookie = NoCore.login(copy(secondUserData), PASSWORD.toCharArray());
+		} catch (Exception e) {
+			logger.severe("Error thrown on second user login, should have returned cookie, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		}
+		
+		NoUserTest user;
+		try {
+			user = (NoUserTest) NoCore.getUser(secondUserCookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown on second user login, should have returned user, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		}
+		
+		// Create outgoing action
+		NoActionTest action = new NoActionTest(address, CHANGES.next());
+		user.addAction(action);
+		
+		// Save-confirm user
+		try {
+			secondUserData = NoCore.requestSave(secondUserCookie, PASSWORD.toCharArray());
+			NoCore.confirm(secondUserCookie, PASSWORD.toCharArray(), copy(secondUserData));
+		} catch (Exception e) {
+			logger.severe("Error thrown on second user confirm, should have returned user, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(secondUserCookie);
+			return false;
+		}
+		
+		// Log in as first user, should get changes
+		
+		try {
+			cookie = NoCore.login(copy(data), PASSWORD.toCharArray());
+		} catch (Exception e) {
+			logger.severe("Error thrown on first user, second login, should have returned cookie, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		}
+		
+		NoState state;
+		try {
+			state = NoCore.getSessionState(cookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown on first user, second login, should have returned state, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(cookie);
+			return false;
+		}
+		if (state != NoState.MODIFIED) {
+			logger.severe("Was expecting state to be MODIFIED, instead was " + state.toString());
+			return false;
+		}
+		
+		try {
+			user = (NoUserTest) NoCore.getUser(cookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown on first user, second login, should have returned user, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(cookie);
+			return false;
+		}
+		
+		if (user.getChangableString().equals(currentString)) {
+			logger.severe("User information has not changed (still " + user.getChangableString() + ").");
+			return false;
+		}
+		printIf("User string changed on first return login,  (" + currentString + " to " + user.getChangableString() + ")!");
+		
+		// Test that the influence resets accordingly on hotpull
+		NoCore.shred(cookie);
+		
+		try {
+			cookie = NoCore.login(copy(data), PASSWORD.toCharArray());
+		} catch (Exception e) {
+			logger.severe("Error thrown on first user, third login, should have returned cookie, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		}
+
+		try {
+			state = NoCore.getSessionState(cookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown on first user, third login, should have returned state, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(cookie);
+			return false;
+		}
+		if (state != NoState.MODIFIED) {
+			logger.severe("Was expecting state to be MODIFIED, instead was " + state.toString());
+			return false;
+		}
+		
+		try {
+			user = (NoUserTest) NoCore.getUser(cookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown on first user, third login, should have returned user, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(cookie);
+			return false;
+		}
+		
+		if (user.getChangableString().equals(currentString)) {
+			logger.severe("User information has not changed (still " + user.getChangableString() + ").");
+			return false;
+		}
+		printIf("User string changed on second return login,  (" + currentString + " to " + user.getChangableString() + ")!");
+		
+		// Save-confirm
+		try {
+			data = NoCore.requestSave(cookie, PASSWORD.toCharArray());
+			NoCore.confirm(cookie, PASSWORD.toCharArray(), copy(data));
+			passoverData = copy(data);
+		} catch (Exception e) {
+			logger.severe("Error thrown on first user, save-confirm, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		}
+		
+		// Final login, check that data has changed AND state is IDLE
+
+		try {
+			cookie = NoCore.login(copy(data), PASSWORD.toCharArray());
+		} catch (Exception e) {
+			logger.severe("Error thrown on first user, final login, should have returned cookie, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		}
+
+		try {
+			state = NoCore.getSessionState(cookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown on first user, final login, should have returned state, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(cookie);
+			return false;
+		}
+		if (state != NoState.IDLE) {
+			logger.severe("Was expecting state to be IDLE, instead was " + state.toString());
+			return false;
+		}
+		
+		try {
+			user = (NoUserTest) NoCore.getUser(cookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown on first user, final login, should have returned user, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(cookie);
+			return false;
+		}
+		
+		if (user.getChangableString().equals(currentString)) {
+			logger.severe("User information has not changed (still " + user.getChangableString() + ").");
+			return false;
+		}
+		printIf("User string changed on final login (" + currentString + " to " + user.getChangableString() + "), while IDLE!");
+		return true;
 	}
 	
 	public static boolean testLifecycle(byte[] data) {
@@ -540,6 +746,12 @@ public class NoCoreTest {
 		ticker.test(testLoginModifyLogout(data));
 		if (passoverData != null && passoverData.getClass().equals(byte[].class)) {
 			data = copy((byte[])passoverData);
+			passoverData = null;
+		}
+		ticker.test(testActionInfluenceLifecycle(data));
+		if (passoverData != null && passoverData.getClass().equals(byte[].class)) {
+			data = copy((byte[])passoverData);
+			passoverData = null;
 		}
 		
 		ticker.logResultMessage();
@@ -572,7 +784,7 @@ public class NoCoreTest {
 		}
 	}
 	
-	public static void main(String[] args) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
+	public static void main(String[] args) {
 		setSilence(false);
 		setPrintStackTraces(true);
 		if (!NoCore.isReady()) {
