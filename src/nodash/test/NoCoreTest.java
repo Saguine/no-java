@@ -11,7 +11,6 @@ import org.apache.commons.codec.binary.Base64;
 
 import nodash.core.NoCore;
 import nodash.core.NoRegister;
-import nodash.core.NoUtil;
 import nodash.exceptions.NoDashSessionBadUUIDException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
@@ -442,6 +441,12 @@ public class NoCoreTest {
 		return ticker.passed();
 	}
 	
+	public static void run() {
+		if (testAll()) {
+			logger.info("All tests passed.");
+		}
+	}
+	
 	public static void main(String[] args) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
 		setSilence(true);
 		setPrintStackTraces(true);
@@ -449,8 +454,6 @@ public class NoCoreTest {
 			NoCore.setup();
 		}
 		
-		if (testAll()) {
-			logger.info("All tests passed.");
-		}
+		run();
 	}
 }
