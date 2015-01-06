@@ -1,23 +1,16 @@
 package nodash.test;
 
-import java.io.UnsupportedEncodingException;
 import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-
 import org.apache.commons.codec.binary.Base64;
 
-import sun.security.rsa.RSAPublicKeyImpl;
 import nodash.core.NoCore;
 import nodash.core.NoRegister;
 import nodash.exceptions.NoDashSessionBadUUIDException;
 import nodash.exceptions.NoSessionConfirmedException;
-import nodash.exceptions.NoSessionExpiredException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoSession.NoState;
