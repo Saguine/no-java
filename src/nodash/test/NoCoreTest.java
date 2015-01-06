@@ -597,6 +597,7 @@ public class NoCoreTest {
 		// Create outgoing action
 		NoActionTest action = new NoActionTest(address, CHANGES.next());
 		user.addAction(action);
+		printIf("Action added to second user.");
 		
 		// Save-confirm user
 		try {
@@ -608,9 +609,10 @@ public class NoCoreTest {
 			NoCore.shred(secondUserCookie);
 			return false;
 		}
+		printIf("Logged out of second user.");
 		
 		// Log in as first user, should get changes
-		
+		printIf("Logging into first user again.");
 		try {
 			cookie = NoCore.login(copy(data), PASSWORD.toCharArray());
 		} catch (Exception e) {
