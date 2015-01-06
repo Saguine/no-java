@@ -12,6 +12,11 @@ import org.apache.commons.codec.binary.Base64;
 import nodash.core.NoCore;
 import nodash.core.NoRegister;
 import nodash.exceptions.NoDashSessionBadUUIDException;
+import nodash.exceptions.NoSessionAlreadyAwaitingConfirmationException;
+import nodash.exceptions.NoSessionConfirmedException;
+import nodash.exceptions.NoSessionExpiredException;
+import nodash.exceptions.NoSessionNotAwaitingConfirmationException;
+import nodash.exceptions.NoSessionNotChangedException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoSession.NoState;
@@ -25,6 +30,8 @@ public class NoCoreTest {
 	
 	private static boolean silent = false;
 	private static boolean printStackTraces = false;
+	
+	private static Object passoverData;
 
 	public static void setPrintStackTraces(boolean toggle) {
 		printStackTraces = toggle;
@@ -407,7 +414,7 @@ public class NoCoreTest {
 	 * BEGIN Login-Logout methods
 	 */
 	
-	public static boolean testLoginModifyLogoutFail(byte[] data) {
+	public static boolean testLoginModifyLogout(byte[] data) {
 		printIf("Testing login, change changableString, save-logout.");
 		checkSetup();
 		
@@ -419,8 +426,128 @@ public class NoCoreTest {
 			printIf(e);
 			return false;
 		}
+		printIf("Cookie recieved.");
 		
-		return true;
+		NoUserTest user;
+		try {
+			user = (NoUserTest) NoCore.getUser(cookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown, should have returned user, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		}
+		printIf("User object received.");
+		user.setChangableString(CHANGE2);
+		
+		NoState stateModified;
+		try {
+			stateModified = NoCore.getSessionState(cookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown, should have returned state, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(cookie);
+			return false;
+		}
+		if (stateModified != NoState.MODIFIED) {
+			logger.severe("State not MODIFIED.");
+			NoCore.shred(cookie);
+			return false;
+		}
+		printIf("State is MODIFIED.");
+		
+		byte[] newData;
+		try {
+			newData = NoCore.requestSave(cookie, PASSWORD.toCharArray());
+		} catch (Exception e) {
+			logger.severe("Error thrown, should have returned new byte array, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(cookie);
+			return false;
+		}
+		printIf("New data stream received.");
+		
+		NoState stateAwaiting;
+		try {
+			stateAwaiting = NoCore.getSessionState(cookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown, should have returned state, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(cookie);
+			return false;
+		}
+		if (stateAwaiting != NoState.AWAITING_CONFIRMATION) {
+			logger.severe("State not AWAITING_CONFIRMATION.");
+			NoCore.shred(cookie);
+			return false;
+		}
+		printIf("State is AWAITING_CONFIRMATION.");
+		
+		try {
+			NoCore.confirm(cookie, PASSWORD.toCharArray(), copy(newData));
+		} catch (Exception e) {
+			logger.severe("Error thrown, should have confirmed, was " + e.getClass().getSimpleName());
+			printIf(e);
+			NoCore.shred(cookie);
+			return false;
+		}
+		printIf("Confirm raised no errors.");
+		passoverData = copy(newData);
+		data = copy(newData);
+		
+		try {
+			NoCore.getSessionState(cookie);
+			logger.severe("Get session state threw no errors after confirmation.");
+			return false;
+		} catch (NoSessionConfirmedException e) {
+			printIf("NoSessionConfirmed exception thrown.");
+		} catch (Exception e) {
+			logger.severe("Error thrown, should have been NoSessionConfirmedException, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		} finally {
+			user = null;
+		}
+		
+		// Log in again to check changes
+		try {
+			cookie = NoCore.login(copy(data), PASSWORD.toCharArray());
+		} catch (Exception e) {
+			logger.severe("Error thrown, should have returned cookie, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		}
+		printIf("Cookie recieved for second login.");
+
+		try {
+			user = (NoUserTest) NoCore.getUser(cookie);
+		} catch (Exception e) {
+			logger.severe("Error thrown on second login, should have returned user, was " + e.getClass().getSimpleName());
+			printIf(e);
+			return false;
+		}
+		printIf("User object received on second login.");
+		
+		if (user.getChangableString().equals(CHANGE2)) {
+			printIf("Changable string has changed and saved.");
+			return true;
+		} else {
+			logger.severe("Changable string has not changed.");
+			return false;
+		}
+	}
+	
+	public static boolean testLifecycle(byte[] data) {
+		printIf("Running life-cycle tests.");
+		checkSetup();
+		
+		TestTicker ticker = new TestTicker();
+		ticker.test(testLoginModifyLogout(data));
+		if (passoverData != null && passoverData.getClass().equals(byte[].class)) {
+			data = copy((byte[])passoverData);
+		}
+		
+		ticker.logResultMessage();
+		return ticker.passed();
 	}
 	
 	/*
@@ -437,6 +564,8 @@ public class NoCoreTest {
 		final byte[] data = registerAndGetBytes();
 		ticker.test(testLogin(data));
 		
+		ticker.test(testLifecycle(data));
+		
 		ticker.logResultMessage();
 		return ticker.passed();
 	}
@@ -448,7 +577,7 @@ public class NoCoreTest {
 	}
 	
 	public static void main(String[] args) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
-		setSilence(true);
+		setSilence(false);
 		setPrintStackTraces(true);
 		if (!NoCore.isReady()) {
 			NoCore.setup();
