@@ -1,12 +1,17 @@
 package nodash.test;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
-import com.sun.istack.internal.logging.Logger;
-import com.sun.org.apache.xml.internal.security.utils.Base64;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+
+import org.apache.commons.codec.binary.Base64;
 
 import nodash.core.NoCore;
 import nodash.core.NoRegister;
+import nodash.core.NoUtil;
 import nodash.exceptions.NoDashSessionBadUUIDException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
@@ -17,12 +22,17 @@ public class NoCoreTest {
 	private static final String CHANGE2 = "different-value";
 	private static final String PASSWORD = "password";
 	private static final String BAD_PASSWORD = "bad-password";
-	private static final Logger logger = Logger.getLogger(NoCoreTest.class);
+	private static final Logger logger = Logger.getLogger("NoCoreTest");
 	
+	private static boolean silent = false;
 	private static boolean printStackTraces = false;
-	
+
 	public static void setPrintStackTraces(boolean toggle) {
 		printStackTraces = toggle;
+	}
+	
+	public static void setSilence(boolean toggle) {
+		silent = toggle;
 	}
 	
 	private static class TestTicker {
@@ -54,7 +64,7 @@ public class NoCoreTest {
 		
 		public void logResultMessage() {
 			if (passed()) {
-				logger.info(getResultMessage());
+				printIf(getResultMessage());
 			} else {
 				logger.severe(getResultMessage());
 			}
@@ -63,7 +73,13 @@ public class NoCoreTest {
 	
 	private static void printIf(Exception e) {
 		if (printStackTraces) {
-			logger.severe(e.getStackTrace().toString());
+			e.printStackTrace();
+		}
+	}
+	
+	private static void printIf(String s) {
+		if (!silent) {
+			logger.info(s);
 		}
 	}
 	
@@ -92,7 +108,7 @@ public class NoCoreTest {
 	 * BEGIN Registration Methods
 	 */
 	public static boolean testRegistrationFailureBadCookie() {
-		logger.info("Testing registration failure with a bad cookie.");
+		printIf("Testing registration failure with a bad cookie.");
 		checkSetup();
 		NoUserTest user = new NoUserTest(CHANGE);
 		NoRegister register = NoCore.register(user, PASSWORD.toCharArray());
@@ -101,7 +117,7 @@ public class NoCoreTest {
 			NoCore.confirm(cookie, PASSWORD.toCharArray(), register.data);
 			logger.severe("Registration with bad cookie throws no errors.");
 		} catch (NoDashSessionBadUUIDException e) {
-			logger.info("NoDashSessionBadUUIDException thrown, passed.");
+			printIf("NoDashSessionBadUUIDException thrown, passed.");
 			return true;
 		} catch (Exception e) {
 			logger.severe("Wrong error thrown, should have been NoDashSessionBadUUIDException, was " + e.getClass().getSimpleName());
@@ -111,7 +127,7 @@ public class NoCoreTest {
 	}
 	
 	public static boolean testRegistrationFailureBadData() {
-		logger.info("Testing registration failure with a bad data stream.");
+		printIf("Testing registration failure with a bad data stream.");
 		checkSetup();
 		NoUserTest user = new NoUserTest(CHANGE);
 		NoRegister register = NoCore.register(user, PASSWORD.toCharArray());
@@ -120,7 +136,7 @@ public class NoCoreTest {
 			NoCore.confirm(register.cookie, PASSWORD.toCharArray(), data);
 			logger.severe("Registration with bad d throws no errors.");
 		} catch (NoUserNotValidException e) {
-			logger.info("NoUserNotValidException thrown, passed.");
+			printIf("NoUserNotValidException thrown, passed.");
 			return true;
 		} catch (Exception e) {
 			logger.severe("Wrong error thrown, should have been NoUserNotValidException, was " + e.getClass().getSimpleName());
@@ -130,7 +146,7 @@ public class NoCoreTest {
 	}
 	
 	public static boolean testRegistrationFailureBadPassword() {
-		logger.info("Testing registration failure with a bad password.");
+		printIf("Testing registration failure with a bad password.");
 		checkSetup();
 		NoUserTest user = new NoUserTest(CHANGE);
 		NoRegister register = NoCore.register(user, PASSWORD.toCharArray());
@@ -138,7 +154,7 @@ public class NoCoreTest {
 			NoCore.confirm(register.cookie, BAD_PASSWORD.toCharArray(), register.data);
 			logger.severe("Registration with bad d throws no errors.");
 		} catch (NoUserNotValidException e) {
-			logger.info("NoUserNotValidException thrown, passed.");
+			printIf("NoUserNotValidException thrown, passed.");
 			return true;
 		} catch (Exception e) {
 			logger.severe("Wrong error thrown, should have been NoUserNotValidException, was " + e.getClass().getSimpleName());
@@ -148,7 +164,7 @@ public class NoCoreTest {
 	}
 	
 	public static boolean testRegistrationFailure() {
-		logger.info("Testing registration failure.");
+		printIf("Testing registration failure.");
 		checkSetup();
 		
 		TestTicker ticker = new TestTicker();
@@ -162,20 +178,20 @@ public class NoCoreTest {
 	}
 	
 	public static boolean testRegistrationSuccess() {
-		logger.info("Testing successful registration.");
+		printIf("Testing successful registration.");
 		checkSetup();
 
 		NoUserTest user = new NoUserTest(CHANGE);
 		NoRegister register = NoCore.register(user, PASSWORD.toCharArray());
 		try {
-			NoCore.confirm(register.cookie, PASSWORD.toCharArray(), register.data);
+			NoCore.confirm(register.cookie, PASSWORD.toCharArray(), copy(register.data));
 		} catch (Exception e) {
 			logger.severe("Error thrown on confirm, of type " + e.getClass().getSimpleName());
 			printIf(e);
 			return false;
 		}
 		
-		logger.info("Registration completed without errors. Attempting login to confirm.");
+		printIf("Registration completed without errors. Attempting login to confirm.");
 		byte[] cookie;
 		try {
 			cookie = NoCore.login(register.data, PASSWORD.toCharArray());
@@ -199,12 +215,12 @@ public class NoCoreTest {
 			return false;
 		}
 		
-		logger.info("Successfully registered, logged in and retrieved user information.");
+		printIf("Successfully registered, logged in and retrieved user information.");
 		return true;
 	}
 	
 	public static boolean testRegistration() {
-		logger.info("Testing registration paths.");
+		printIf("Testing registration paths.");
 		checkSetup();
 		
 		TestTicker ticker = new TestTicker();
@@ -223,11 +239,12 @@ public class NoCoreTest {
 	 */
 	
 	private static byte[] registerAndGetBytes() {
-		logger.info("Registering...");
+		printIf("Registering...");
 
 		NoUserTest user = new NoUserTest(CHANGE);
-		logger.info("Generated user, changeableString: " + user.getChangableString());
+		printIf("Generated user, changeableString: " + user.getChangableString());
 		NoRegister register = NoCore.register(user, PASSWORD.toCharArray());
+		byte[] userFile = copy(register.data);
 		try {
 			NoCore.confirm(register.cookie, PASSWORD.toCharArray(), register.data);
 		} catch (Exception e) {
@@ -235,19 +252,19 @@ public class NoCoreTest {
 			printIf(e);
 			throw new NoTestNotReadyException("Failed to set up user file.");
 		}
-		return register.data;
+		return userFile;
 	}
 	
 	public static boolean testLoginFailBadPassword(byte[] data) {
-		logger.info("Testing login with bad password.");
+		printIf("Testing login with bad password.");
 		checkSetup();
 		
 		byte[] cookie = null;
 		try {
 			cookie = NoCore.login(copy(data), BAD_PASSWORD.toCharArray());
-			logger.severe("Cookie (" + Base64.encode(cookie) + ") returned, even with bad password.");
+			logger.severe("Cookie (" + Base64.encodeBase64(cookie) + ") returned, even with bad password.");
 		} catch (NoUserNotValidException e) {
-			logger.info("NoUserNotValidException thrown, passed.");
+			printIf("NoUserNotValidException thrown, passed.");
 			return true;
 		} catch (Exception e) {
 			logger.severe("Wrong error thrown, should have been NoUserNotValidException, was " + e.getClass().getSimpleName());
@@ -260,7 +277,7 @@ public class NoCoreTest {
 	}
 	
 	public static boolean testLoginFailBadData(byte[] data) {
-		logger.info("Testing login with bad data.");
+		printIf("Testing login with bad data.");
 		checkSetup();
 		
 		byte[] dataCopy = copy(data);
@@ -268,9 +285,9 @@ public class NoCoreTest {
 		byte[] cookie = null;
 		try {
 			cookie = NoCore.login(dataCopy, PASSWORD.toCharArray());
-			logger.severe("Cookie (" + Base64.encode(cookie) + ") returned, even with bad data.");
+			logger.severe("Cookie (" + Base64.encodeBase64(cookie) + ") returned, even with bad data.");
 		} catch (NoUserNotValidException e) {
-			logger.info("NoUserNotValidException thrown, passed.");
+			printIf("NoUserNotValidException thrown, passed.");
 			return true;
 		} catch (Exception e) {
 			logger.severe("Wrong error thrown, should have been NoUserNotValidException, was " + e.getClass().getSimpleName());
@@ -283,12 +300,13 @@ public class NoCoreTest {
 	}
 	
 	public static boolean testLoginFailMultipleSessions(byte[] data) {
-		logger.info("Testing that multiple sessions throw an error.");
+		printIf("Testing that multiple sessions throw an error.");
 		checkSetup();
 		
 		byte[] cookie;
 		try {
 			cookie = NoCore.login(copy(data), PASSWORD.toCharArray());
+			printIf("Received cookie (" + new String(cookie) + ")");
 		} catch (Exception e) {
 			logger.severe("Error thrown, should have logged in, was " + e.getClass().getSimpleName());
 			printIf(e);
@@ -298,18 +316,18 @@ public class NoCoreTest {
 		byte[] secondCookie = null;
 		try {
 			secondCookie = NoCore.login(copy(data), PASSWORD.toCharArray());
-			logger.severe("Cookie (" + Base64.encode(secondCookie) + ") returned, even with concurrent session.");
+			logger.severe("Cookie (" + new String(secondCookie) + ") returned, even with concurrent session.");
 		} catch (NoUserAlreadyOnlineException e) {
-			logger.info("NoUserAlreadyOnlineException thrown, passed.");
+			printIf("NoUserAlreadyOnlineException thrown, passed.");
 			return true;
 		} catch (Exception e) {
-			logger.severe("Wrong error thrown, should have been NoUserNotValidException, was " + e.getClass().getSimpleName());
+			logger.severe("Wrong error thrown, should have been NoUserAlreadyOnlineException, was " + e.getClass().getSimpleName());
 			printIf(e);
 		} finally {
 			NoCore.shred(secondCookie);
+			NoCore.shred(cookie);
 		}
 		
-		NoCore.shred(cookie);
 		return false;
 	}
 	
@@ -318,7 +336,7 @@ public class NoCoreTest {
 	}
 	
 	public static boolean testLoginFail(byte[] data) {
-		logger.info("Testing login failure methods.");
+		printIf("Testing login failure methods.");
 		checkSetup();
 		
 		TestTicker ticker = new TestTicker();
@@ -331,7 +349,7 @@ public class NoCoreTest {
 	}
 	
 	public static boolean testLoginSuccess(byte[] data) {
-		logger.info("Testing successful login and user/state retrieval.");
+		printIf("Testing successful login and user/state retrieval.");
 		checkSetup();
 		
 		byte[] cookie = null;
@@ -364,7 +382,7 @@ public class NoCoreTest {
 			return false;
 		}
 
-		logger.info("User login successful, changableString: " + user.getChangableString());
+		printIf("User login successful, changableString: " + user.getChangableString());
 		NoCore.shred(cookie);
 		return true;
 	}
@@ -374,7 +392,7 @@ public class NoCoreTest {
 	}
 	
 	public static boolean testLogin(byte[] data) {
-		logger.info("Testing all login methods.");
+		printIf("Testing all login methods.");
 		checkSetup();
 		
 		TestTicker ticker = new TestTicker();
@@ -391,7 +409,7 @@ public class NoCoreTest {
 	 */
 	
 	public static boolean testLoginModifyLogoutFail(byte[] data) {
-		logger.info("Testing login, change changableString, save-logout.");
+		printIf("Testing login, change changableString, save-logout.");
 		checkSetup();
 		
 		byte[] cookie = null;
@@ -410,25 +428,29 @@ public class NoCoreTest {
 	 * END Login-Logout methods
 	 */
 	
-	public static void testAll() {
+	public static boolean testAll() {
 		logger.info("Running all tests.");
 		checkSetup();
 		
-		byte[] data = registerAndGetBytes();
-		
 		TestTicker ticker = new TestTicker();
 		ticker.test(testRegistration());
+		
+		final byte[] data = registerAndGetBytes();
 		ticker.test(testLogin(data));
 		
 		ticker.logResultMessage();
+		return ticker.passed();
 	}
 	
-	public static void main(String[] args) {
-		if (NoCore.isReady()) {
-			testAll();
-		} else {
+	public static void main(String[] args) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
+		setSilence(true);
+		setPrintStackTraces(true);
+		if (!NoCore.isReady()) {
 			NoCore.setup();
-			testAll();
+		}
+		
+		if (testAll()) {
+			logger.info("All tests passed.");
 		}
 	}
 }
