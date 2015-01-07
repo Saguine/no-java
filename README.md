@@ -38,7 +38,7 @@ a session if data has been changed, as changes can only be saved when the user i
 
 ## Things to consider
 
-- With SHA-512 hashes taking up 64 bytes of storage, it's possible to accomodate a million accounts in under 64MB.
+- With SHA-512 hashes taking up 64 bytes of storage, it's possible to accomodate a million accounts in just 64MB.
 - When considering multiple servers with multiple backup points, it's possible to simply make the hash database public, 
 masking transfers to backup servers by crowdsourcing false leads.
 - A correctly implemented no- system would still be vulnerable to a stealthy server compromise; that is, a server known to use the no- system is
