@@ -51,6 +51,7 @@ public class NoUser implements Serializable {
 	private static final long serialVersionUID = 7132405837081692211L;
 	private PublicKey publicKey;
 	private PrivateKey privateKey;
+	@SuppressWarnings("unused")
 	private String randomized;
 	
 	public int influences;
