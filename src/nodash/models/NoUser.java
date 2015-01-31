@@ -51,6 +51,7 @@ public class NoUser implements Serializable {
 	private static final long serialVersionUID = 7132405837081692211L;
 	private PublicKey publicKey;
 	private PrivateKey privateKey;
+	private String randomized;
 	
 	public int influences;
 	public int actions;
@@ -78,11 +79,23 @@ public class NoUser implements Serializable {
 		this.privateKey = keyPair.getPrivate();
 		this.influences = 0;
 		this.actions = 0;
+		this.touchRandomizer();
+	}
+	
+	private void touchRandomizer() {
+		byte[] randomBytes = new byte[64];
+		try {
+			SecureRandom.getInstance(NoUtil.SECURERANDOM_ALGORITHM).nextBytes(randomBytes);
+		} catch (NoSuchAlgorithmException e) {
+			throw new NoDashFatalException("Value for SECURERANDOM_ALGORITHM not valid.", e);
+		}
+		this.randomized = new String(randomBytes);
 	}
 
 	public final byte[] createFile(char[] password) {
 		ArrayList<NoAction> temp = this.outgoing;
 		try {
+			this.touchRandomizer();
 			this.outgoing = new ArrayList<NoAction>();
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ObjectOutputStream oos = new ObjectOutputStream(baos);
