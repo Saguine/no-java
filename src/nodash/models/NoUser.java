@@ -34,6 +34,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -55,7 +56,7 @@ public class NoUser implements Serializable {
   public int influences;
   public int actions;
 
-  private ArrayList<NoAction> outgoing = new ArrayList<NoAction>();
+  private List<NoAction> outgoing = new ArrayList<NoAction>();
 
   public NoUser() {
     KeyPairGenerator kpg;
@@ -93,7 +94,7 @@ public class NoUser implements Serializable {
   }
 
   public final byte[] createFile(char[] password) {
-    ArrayList<NoAction> temp = this.outgoing;
+    List<NoAction> temp = this.outgoing;
     try {
       this.touchRandomizer();
       this.outgoing = new ArrayList<NoAction>();
@@ -113,7 +114,7 @@ public class NoUser implements Serializable {
   }
 
   public final byte[] createHash() {
-    ArrayList<NoAction> temp = this.outgoing;
+    List<NoAction> temp = this.outgoing;
     try {
       this.outgoing = new ArrayList<NoAction>();
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -158,7 +159,7 @@ public class NoUser implements Serializable {
     this.actions++;
   }
 
-  public final ArrayList<NoAction> getNoActions() {
+  public final List<NoAction> getNoActions() {
     return this.outgoing;
   }
 

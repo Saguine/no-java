@@ -3,6 +3,7 @@ package nodash.models;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -154,7 +155,7 @@ public final class NoSession implements Serializable {
       }
 
       /* 5.2.3: clear influences as they will not need to be re-applied */
-      ArrayList<NoAction> actions = this.current.getNoActions();
+      List<NoAction> actions = this.current.getNoActions();
       this.incoming = null;
       this.original = null;
       this.current = null;
