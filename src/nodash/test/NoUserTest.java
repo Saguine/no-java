@@ -8,12 +8,19 @@ import java.util.Arrays;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
+import nodash.core.NoCore;
 import nodash.models.NoUser;
 
 import org.apache.commons.codec.binary.Base64;
+import org.junit.Before;
 import org.junit.Test;
 
 public class NoUserTest {
+  
+  @Before
+  public void setup() {
+    NoCore.setup();
+  }
 
   @Test
   public void testNoUser() {
@@ -77,7 +84,7 @@ public class NoUserTest {
     } catch (IllegalBlockSizeException e) {
       fail("IllegalBlockSizeException encountered.");
     } catch (BadPaddingException e) {
-      fail("BadPaddingException encountered.");
+      // Do nothing, correct
     } catch (ClassNotFoundException e) {
       fail("ClassNotFoundException encountered.");
     } catch (IOException e) {
