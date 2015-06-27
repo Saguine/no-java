@@ -9,46 +9,46 @@ import javax.crypto.SecretKey;
 import nodash.exceptions.NoDashFatalException;
 
 public abstract class NoConfigBase implements NoConfigInterface {
-	protected boolean ready;
-	protected SecretKey secretKey;
-	protected boolean saveDatabase;
-	protected boolean saveByteSets;
-	
-	protected final void generateSecretKey() {
-		try {
-			KeyGenerator keyGenerator = KeyGenerator.getInstance(NoUtil.CIPHER_KEY_SPEC);
-			keyGenerator.init(NoUtil.AES_STRENGTH);
-			this.secretKey = keyGenerator.generateKey();
-		} catch (NoSuchAlgorithmException e) {
-			throw new NoDashFatalException("Value for CIPHER_KEY_SPEC not valid.", e);
-		}
-	}
+  protected boolean ready;
+  protected SecretKey secretKey;
+  protected boolean saveDatabase;
+  protected boolean saveByteSets;
 
-	@Override
-	public void construct() {
-		this.generateSecretKey();
-		this.ready = true;
-	}
+  protected final void generateSecretKey() {
+    try {
+      KeyGenerator keyGenerator = KeyGenerator.getInstance(NoUtil.CIPHER_KEY_SPEC);
+      keyGenerator.init(NoUtil.AES_STRENGTH);
+      this.secretKey = keyGenerator.generateKey();
+    } catch (NoSuchAlgorithmException e) {
+      throw new NoDashFatalException("Value for CIPHER_KEY_SPEC not valid.", e);
+    }
+  }
 
-	@Override
-	public SecretKey getSecretKey() {
-		return this.secretKey;
-	}
+  @Override
+  public void construct() {
+    this.generateSecretKey();
+    this.ready = true;
+  }
 
-	@Override
-	public boolean saveDatabase() {
-		return this.saveDatabase;
-	}
+  @Override
+  public SecretKey getSecretKey() {
+    return this.secretKey;
+  }
 
-	@Override
-	public boolean saveByteSets() {
-		return this.saveByteSets;
-	}
+  @Override
+  public boolean saveDatabase() {
+    return this.saveDatabase;
+  }
 
-	@Override
-	public abstract void saveNoConfig();
+  @Override
+  public boolean saveByteSets() {
+    return this.saveByteSets;
+  }
 
-	@Override
-	public abstract NoConfigInterface loadNoConfig() throws IOException;
+  @Override
+  public abstract void saveNoConfig();
+
+  @Override
+  public abstract NoConfigInterface loadNoConfig() throws IOException;
 
 }
