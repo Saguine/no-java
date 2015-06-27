@@ -41,6 +41,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.codec.binary.Base64;
+
 import sun.security.rsa.RSAPublicKeyImpl;
 import nodash.core.NoUtil;
 import nodash.exceptions.NoByteSetBadDecryptionException;
@@ -53,8 +55,7 @@ public class NoUser implements Serializable {
   @SuppressWarnings("unused")
   private String randomized;
 
-  public int influences;
-  public int actions;
+  private int influences;
 
   private List<NoAction> outgoing = new ArrayList<NoAction>();
 
@@ -79,7 +80,6 @@ public class NoUser implements Serializable {
     this.publicKey = keyPair.getPublic();
     this.privateKey = keyPair.getPrivate();
     this.influences = 0;
-    this.actions = 0;
     this.touchRandomizer();
   }
 
@@ -128,11 +128,7 @@ public class NoUser implements Serializable {
       this.outgoing = temp;
     }
   }
-
-  public final String createHashString() {
-    return new String(this.createHash());
-  }
-
+  
   public final void consume(NoByteSet byteSet) throws NoByteSetBadDecryptionException {
     try {
       SecretKey secretKey = new SecretKeySpec(decryptRSA(byteSet.key), NoUtil.CIPHER_KEY_SPEC);
@@ -156,7 +152,6 @@ public class NoUser implements Serializable {
 
   public final void addAction(NoAction action) {
     this.outgoing.add(action);
-    this.actions++;
   }
 
   public final List<NoAction> getNoActions() {
@@ -179,6 +174,10 @@ public class NoUser implements Serializable {
     }
   }
 
+  public int getInfluences() {
+    return influences;
+  }
+
   private final byte[] decryptRSA(byte[] data) throws InvalidKeyException,
       IllegalBlockSizeException, BadPaddingException {
     return NoUtil.decryptRSA(data, this.privateKey);
@@ -193,6 +192,10 @@ public class NoUser implements Serializable {
     ois.close();
     bais.close();
     return noUser;
+  }
+
+  public String createHashString() {
+    return Base64.encodeBase64String(this.createHash());
   }
 
 }
