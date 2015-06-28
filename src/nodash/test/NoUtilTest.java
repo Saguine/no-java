@@ -234,13 +234,7 @@ public class NoUtilTest {
   @Test
   public void testEncryptionDecryptionRSA() throws NoSuchAlgorithmException,
       NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-    KeyPairGenerator kpg;
-    try {
-      kpg = KeyPairGenerator.getInstance(NoUtil.KEYPAIR_ALGORITHM);
-    } catch (NoSuchAlgorithmException e) {
-      throw new NoDashFatalException("Value for KEYPAIR_ALGORITHM is not valid.", e);
-    }
-
+    KeyPairGenerator kpg = KeyPairGenerator.getInstance(NoUtil.KEYPAIR_ALGORITHM);
     kpg.initialize(NoUtil.RSA_STRENGTH,
         SecureRandom.getInstance(NoUtil.SECURERANDOM_ALGORITHM, NoUtil.SECURERANDOM_PROVIDER));
     
