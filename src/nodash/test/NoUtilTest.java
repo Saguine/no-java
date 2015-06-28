@@ -11,6 +11,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
@@ -26,6 +27,14 @@ public class NoUtilTest {
   @Before
   public void setup() throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException {
     NoCore.setup();
+  }
+  
+  @Test
+  public void testAllowedKeySize() throws NoSuchAlgorithmException {
+    if (Cipher.getMaxAllowedKeyLength(NoUtil.CIPHER_KEY_SPEC) < NoUtil.AES_STRENGTH) {
+      fail("Max allowed key length for CIPHER_TYPE (AES) less than required.");
+    }
+    
   }
 
   @Test
@@ -115,7 +124,7 @@ public class NoUtilTest {
   }
 
   @Test
-  public void testByteKeyEncryptionDecryptionAES() {
+  public void testByteKeyEncryptionDecryptionAES() throws IllegalBlockSizeException, BadPaddingException {
     final byte[] originalBytes = {'s', 'o', 'm', 'e', 'b', 'y', 't', 'e', 's'};
     final byte[] originalByteKey = {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
 
@@ -127,21 +136,11 @@ public class NoUtilTest {
     try {
       NoUtil.decrypt(encryptedByByteKey, new byte[] {'b', 'a', 'd', 'k', 'e', 'y'});
       fail("Did not throw BadPaddingException while decrypting with bad key.");
-    } catch (IllegalBlockSizeException e) {
-      fail("Did not throw BadPaddingException while decrypting with bad key.");
     } catch (BadPaddingException e) {
       // Do nothing, correct
     }
     
-    byte[] decryptedByByteKey;
-    try {
-      decryptedByByteKey = NoUtil.decrypt(encryptedByByteKey, byteKey);
-    } catch (IllegalBlockSizeException | BadPaddingException e) {
-      fail("Encountered an error of type " + e.getClass().getSimpleName()
-          + " while decrypting with valid password");
-      decryptedByByteKey = new byte[] {};
-    }
-    
+    byte[] decryptedByByteKey = NoUtil.decrypt(encryptedByByteKey, byteKey);
     assertTrue(Arrays.equals(originalBytes, decryptedByByteKey));
     
     byte[] nullByte = null;
@@ -161,10 +160,6 @@ public class NoUtilTest {
       fail("Allowed null parameter without thrown exception.");
     } catch (NullPointerException e) {
       // Do nothing, correct
-    } catch (IllegalBlockSizeException e) {
-      fail("Allowed null parameter without thrown exception.");
-    } catch (BadPaddingException e) {
-      fail("Allowed null parameter without thrown exception.");
     }
 
     try {
@@ -172,15 +167,11 @@ public class NoUtilTest {
       fail("Allowed null parameter without thrown exception.");
     } catch (NullPointerException e) {
       // Do nothing, correct
-    } catch (IllegalBlockSizeException e) {
-      fail("Allowed null parameter without thrown exception.");
-    } catch (BadPaddingException e) {
-      fail("Allowed null parameter without thrown exception.");
     }
   }
 
   @Test
-  public void testCharKeyEncryptionDecryptionAES() {    
+  public void testCharKeyEncryptionDecryptionAES() throws IllegalBlockSizeException, BadPaddingException {    
     final byte[] originalBytes = {'s', 'o', 'm', 'e', 'b', 'y', 't', 'e', 's'};
     final char[] originalCharKey = {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
 
@@ -192,21 +183,11 @@ public class NoUtilTest {
     try {
       NoUtil.decrypt(encryptedByCharKey, new byte[] {'b', 'a', 'd', 'k', 'e', 'y'});
       fail("Did not throw BadPaddingException while decrypting with bad key.");
-    } catch (IllegalBlockSizeException e) {
-      fail("Did not throw BadPaddingException while decrypting with bad key.");
     } catch (BadPaddingException e) {
       // Do nothing, correct
     }
     
-    byte[] decryptedByCharKey;
-    try {
-      decryptedByCharKey = NoUtil.decrypt(encryptedByCharKey, charKey);
-    } catch (IllegalBlockSizeException | BadPaddingException e) {
-      fail("Encountered an error of type " + e.getClass().getSimpleName()
-          + " while decrypting with valid password");
-      decryptedByCharKey = new byte[] {};
-    }
-    
+    byte[] decryptedByCharKey = NoUtil.decrypt(encryptedByCharKey, charKey);
     assertTrue(Arrays.equals(originalBytes, decryptedByCharKey));
     
     byte[] nullByte = null;
@@ -216,10 +197,6 @@ public class NoUtilTest {
       fail("Allowed null parameter without thrown exception.");
     } catch (NullPointerException e) {
       // Do nothing, correct
-    } catch (IllegalBlockSizeException e) {
-      fail("Allowed null parameter without thrown exception.");
-    } catch (BadPaddingException e) {
-      fail("Allowed null parameter without thrown exception.");
     }
 
     try {
@@ -227,10 +204,6 @@ public class NoUtilTest {
       fail("Allowed null parameter without thrown exception.");
     } catch (NullPointerException e) {
       // Do nothing, correct
-    } catch (IllegalBlockSizeException e) {
-      fail("Allowed null parameter without thrown exception.");
-    } catch (BadPaddingException e) {
-      fail("Allowed null parameter without thrown exception.");
     }
 
     try {
@@ -238,29 +211,16 @@ public class NoUtilTest {
       fail("Allowed null parameter without thrown exception.");
     } catch (NullPointerException e) {
       // Do nothing, correct
-    } catch (IllegalBlockSizeException e) {
-      fail("Allowed null parameter without thrown exception.");
-    } catch (BadPaddingException e) {
-      fail("Allowed null parameter without thrown exception.");
     }
   }
 
   @Test
-  public void testNoKeyEncryptionDecryptionAES() {
+  public void testNoKeyEncryptionDecryptionAES() throws IllegalBlockSizeException, BadPaddingException {
     final byte[] originalBytes = {'s', 'o', 'm', 'e', 'b', 'y', 't', 'e', 's'};
     byte[] bytes = Arrays.copyOf(originalBytes, originalBytes.length);
 
     byte[] encrypted = NoUtil.encrypt(bytes);
-    
-    byte[] decrypted;
-    try {
-      decrypted = NoUtil.decrypt(encrypted);
-    } catch (IllegalBlockSizeException | BadPaddingException e) {
-      fail("Encountered an error of type " + e.getClass().getSimpleName()
-          + " while decrypting with valid password");
-      decrypted = new byte[] {};
-    }
-    
+    byte[] decrypted = NoUtil.decrypt(encrypted);
     assertTrue(Arrays.equals(originalBytes, decrypted));
     
     try {
@@ -268,15 +228,12 @@ public class NoUtilTest {
       fail("Allowed null parameter without thrown exception.");
     } catch (NullPointerException e) {
       // Do nothing, correct
-    } catch (IllegalBlockSizeException e) {
-      fail("Allowed null parameter without thrown exception.");
-    } catch (BadPaddingException e) {
-      fail("Allowed null parameter without thrown exception.");
     }
   }
 
   @Test
-  public void testEncryptionDecryptionRSA() {
+  public void testEncryptionDecryptionRSA() throws NoSuchAlgorithmException,
+      NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
     KeyPairGenerator kpg;
     try {
       kpg = KeyPairGenerator.getInstance(NoUtil.KEYPAIR_ALGORITHM);
@@ -284,42 +241,25 @@ public class NoUtilTest {
       throw new NoDashFatalException("Value for KEYPAIR_ALGORITHM is not valid.", e);
     }
 
-    try {
-      kpg.initialize(NoUtil.RSA_STRENGTH,
-          SecureRandom.getInstance(NoUtil.SECURERANDOM_ALGORITHM, NoUtil.SECURERANDOM_PROVIDER));
-    } catch (NoSuchAlgorithmException e) {
-      throw new NoDashFatalException("Value for SECURERANDOM_ALGORITHM not valid.", e);
-    } catch (NoSuchProviderException e) {
-      throw new NoDashFatalException("Value for SECURERANDOM_PROVIDER not valid.", e);
-    }
+    kpg.initialize(NoUtil.RSA_STRENGTH,
+        SecureRandom.getInstance(NoUtil.SECURERANDOM_ALGORITHM, NoUtil.SECURERANDOM_PROVIDER));
+    
 
     KeyPair keyPair = kpg.generateKeyPair();
     KeyPair keyPair2 = kpg.generateKeyPair();
     
     final byte[] originalBytes = {'s', 'o', 'm', 'e', 'b', 'y', 't', 'e', 's'};
-    
     byte[] bytes = Arrays.copyOf(originalBytes, originalBytes.length);
     
     byte[] encrypted = NoUtil.encryptRSA(bytes, keyPair.getPublic());
     try {
       NoUtil.decryptRSA(encrypted, keyPair2.getPrivate());
       fail("Did not throw exception with incorrect private key.");
-    } catch (InvalidKeyException e) {
-      fail("Did not throw exception with incorrect private key.");
-    } catch (IllegalBlockSizeException e) {
-      fail("Did not throw exception with incorrect private key.");
     } catch (BadPaddingException e) {
       // Do nothing, correct
     }
     
-    byte[] decrypted;
-    try {
-      decrypted = NoUtil.decryptRSA(encrypted, keyPair.getPrivate());
-    } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-      fail("Threw exception with correct private key.");
-      decrypted = new byte[] {};
-    }
-    
+    byte[] decrypted = NoUtil.decryptRSA(encrypted, keyPair.getPrivate());
     assertTrue(Arrays.equals(originalBytes, decrypted));
   }
 
