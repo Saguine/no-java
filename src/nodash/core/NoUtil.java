@@ -77,7 +77,7 @@ public final class NoUtil {
     }
   }
 
-  private static byte[] getPBEKeyFromPassword(char[] password) {
+  private static byte[] getPbeKeyFromPassword(char[] password) {
     SecretKeyFactory skf;
     try {
       skf = SecretKeyFactory.getInstance(NoUtil.PBE_TYPE);
@@ -106,14 +106,14 @@ public final class NoUtil {
 
   public static byte[] decrypt(byte[] data, char[] password) throws IllegalBlockSizeException,
       BadPaddingException {
-    byte[] passwordByte = NoUtil.getPBEKeyFromPassword(password);
+    byte[] passwordByte = NoUtil.getPbeKeyFromPassword(password);
     byte[] response = NoUtil.decrypt(NoUtil.decrypt(data), passwordByte);
     NoUtil.wipeBytes(passwordByte);
     return response;
   }
 
   public static byte[] encrypt(byte[] data, char[] password) {
-    byte[] passwordByte = NoUtil.getPBEKeyFromPassword(password);
+    byte[] passwordByte = NoUtil.getPbeKeyFromPassword(password);
     byte[] response = NoUtil.encrypt(NoUtil.encrypt(data, passwordByte));
     NoUtil.wipeBytes(passwordByte);
     return response;
@@ -172,7 +172,7 @@ public final class NoUtil {
     return NoUtil.decrypt(data, NoCore.config.getSecretKey().getEncoded());
   }
 
-  public static byte[] encryptRSA(byte[] data, PublicKey publicKey) {
+  public static byte[] encryptRsa(byte[] data, PublicKey publicKey) {
     Cipher cipher;
     try {
       cipher = Cipher.getInstance(NoUtil.CIPHER_RSA_TYPE);
@@ -194,7 +194,7 @@ public final class NoUtil {
     }
   }
 
-  public static byte[] decryptRSA(byte[] data, PrivateKey privateKey) throws InvalidKeyException,
+  public static byte[] decryptRsa(byte[] data, PrivateKey privateKey) throws InvalidKeyException,
       IllegalBlockSizeException, BadPaddingException {
     Cipher cipher;
     try {

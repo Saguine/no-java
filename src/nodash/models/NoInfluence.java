@@ -53,7 +53,7 @@ public abstract class NoInfluence implements Serializable {
     keyGen.init(NoUtil.AES_STRENGTH);
     SecretKey secretKey = keyGen.generateKey();
     byte[] key = secretKey.getEncoded();
-    byte[] encryptedKey = NoUtil.encryptRSA(key, publicKey);
+    byte[] encryptedKey = NoUtil.encryptRsa(key, publicKey);
     byte[] data = this.getEncrypted(key);
     NoUtil.wipeBytes(key);
     return new NoByteSet(encryptedKey, data);

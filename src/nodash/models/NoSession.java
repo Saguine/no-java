@@ -183,20 +183,20 @@ public final class NoSession implements Serializable {
     return this.current;
   }
 
-  public UUID getUUID() {
+  public UUID getUuid() {
     return this.uuid;
   }
 
-  public String getUUIDAsString() {
+  public String getUuidAsString() {
     return this.uuid.toString();
   }
 
-  public byte[] getEncryptedUUID() {
+  public byte[] getEncryptedUuid() {
     return NoUtil.encrypt(Base64.encodeBase64(this.uuid.toString().getBytes()));
   }
 
-  public String getEncryptedUUIDAsString() {
-    return new String(this.getEncryptedUUID());
+  public String getEncryptedUuidAsString() {
+    return new String(this.getEncryptedUuid());
   }
 
   public byte[] getOriginalHash() {
@@ -207,7 +207,7 @@ public final class NoSession implements Serializable {
     }
   }
 
-  public static UUID decryptUUID(byte[] data) throws NoDashSessionBadUUIDException {
+  public static UUID decryptUuid(byte[] data) throws NoDashSessionBadUUIDException {
     if (data == null) {
       throw new NoDashSessionBadUUIDException();
     }

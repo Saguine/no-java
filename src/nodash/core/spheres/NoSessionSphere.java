@@ -54,7 +54,7 @@ public final class NoSessionSphere {
 
   public static void shred(byte[] encryptedUUID) {
     try {
-      UUID uuid = NoSession.decryptUUID(encryptedUUID);
+      UUID uuid = NoSession.decryptUuid(encryptedUUID);
       if (NoSessionSphere.sessions.containsKey(uuid)) {
         NoSession session = NoSessionSphere.sessions.get(uuid);
         NoByteSetSphere.addList(session.incoming, session.current.getRSAPublicKey());
@@ -116,12 +116,12 @@ public final class NoSessionSphere {
     /* Will set to 2.1[MODIFIED] or 2.2[IDLE] */
 
     /* Precursor to 3.; allow website to associate user session with a cookie. */
-    return session.getEncryptedUUID();
+    return session.getEncryptedUuid();
   }
 
   public static NoUser getUser(byte[] encryptedUUID) throws NoDashSessionBadUUIDException,
       NoSessionExpiredException, NoSessionConfirmedException {
-    UUID uuid = NoSession.decryptUUID(encryptedUUID);
+    UUID uuid = NoSession.decryptUuid(encryptedUUID);
     if (NoSessionSphere.sessions.containsKey(uuid)) {
       NoSessionSphere.pruneSingle(uuid);
       try {
@@ -135,7 +135,7 @@ public final class NoSessionSphere {
 
   public static NoState getState(byte[] encryptedUUID) throws NoDashSessionBadUUIDException,
       NoSessionExpiredException, NoSessionConfirmedException {
-    UUID uuid = NoSession.decryptUUID(encryptedUUID);
+    UUID uuid = NoSession.decryptUuid(encryptedUUID);
     if (NoSessionSphere.sessions.containsKey(uuid)) {
       NoSessionSphere.pruneSingle(uuid);
       NoSession session = NoSessionSphere.sessions.get(uuid);
@@ -147,7 +147,7 @@ public final class NoSessionSphere {
   public static synchronized byte[] save(byte[] encryptedUUID, char[] password)
       throws NoDashSessionBadUUIDException, NoSessionExpiredException, NoSessionConfirmedException,
       NoSessionNotChangedException, NoSessionAlreadyAwaitingConfirmationException {
-    UUID uuid = NoSession.decryptUUID(encryptedUUID);
+    UUID uuid = NoSession.decryptUuid(encryptedUUID);
     if (NoSessionSphere.sessions.containsKey(uuid)) {
       NoSessionSphere.pruneSingle(uuid);
       NoSession session = NoSessionSphere.sessions.get(uuid);
@@ -165,7 +165,7 @@ public final class NoSessionSphere {
   public static synchronized void confirm(byte[] encryptedUUID, char[] password, byte[] data)
       throws NoDashSessionBadUUIDException, NoSessionExpiredException, NoSessionConfirmedException,
       NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
-    UUID uuid = NoSession.decryptUUID(encryptedUUID);
+    UUID uuid = NoSession.decryptUuid(encryptedUUID);
     if (NoSessionSphere.sessions.containsKey(uuid)) {
       NoSessionSphere.pruneSingle(uuid);
       NoSession session = NoSessionSphere.sessions.get(uuid);
@@ -179,7 +179,7 @@ public final class NoSessionSphere {
     NoSession session = new NoSession(user);
     NoSessionSphere.sessions.put(session.uuid, session);
     try {
-      byte[] cookie = session.getEncryptedUUID();
+      byte[] cookie = session.getEncryptedUuid();
       return new NoRegister(cookie, NoSessionSphere.save(cookie, password));
     } catch (NoDashSessionBadUUIDException e) {
       throw new NoDashFatalException("Immediately generated cookie throwing bad cookie error.", e);

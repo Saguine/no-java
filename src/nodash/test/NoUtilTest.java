@@ -124,7 +124,7 @@ public class NoUtilTest {
   }
 
   @Test
-  public void testByteKeyEncryptionDecryptionAES() throws IllegalBlockSizeException, BadPaddingException {
+  public void testByteKeyEncryptionDecryptionAes() throws IllegalBlockSizeException, BadPaddingException {
     final byte[] originalBytes = {'s', 'o', 'm', 'e', 'b', 'y', 't', 'e', 's'};
     final byte[] originalByteKey = {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
 
@@ -171,7 +171,7 @@ public class NoUtilTest {
   }
 
   @Test
-  public void testCharKeyEncryptionDecryptionAES() throws IllegalBlockSizeException, BadPaddingException {    
+  public void testCharKeyEncryptionDecryptionAes() throws IllegalBlockSizeException, BadPaddingException {    
     final byte[] originalBytes = {'s', 'o', 'm', 'e', 'b', 'y', 't', 'e', 's'};
     final char[] originalCharKey = {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
 
@@ -215,7 +215,7 @@ public class NoUtilTest {
   }
 
   @Test
-  public void testNoKeyEncryptionDecryptionAES() throws IllegalBlockSizeException, BadPaddingException {
+  public void testNoKeyEncryptionDecryptionAes() throws IllegalBlockSizeException, BadPaddingException {
     final byte[] originalBytes = {'s', 'o', 'm', 'e', 'b', 'y', 't', 'e', 's'};
     byte[] bytes = Arrays.copyOf(originalBytes, originalBytes.length);
 
@@ -232,7 +232,7 @@ public class NoUtilTest {
   }
 
   @Test
-  public void testEncryptionDecryptionRSA() throws NoSuchAlgorithmException,
+  public void testEncryptionDecryptionRsa() throws NoSuchAlgorithmException,
       NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
     KeyPairGenerator kpg = KeyPairGenerator.getInstance(NoUtil.KEYPAIR_ALGORITHM);
     kpg.initialize(NoUtil.RSA_STRENGTH,
@@ -245,15 +245,15 @@ public class NoUtilTest {
     final byte[] originalBytes = {'s', 'o', 'm', 'e', 'b', 'y', 't', 'e', 's'};
     byte[] bytes = Arrays.copyOf(originalBytes, originalBytes.length);
     
-    byte[] encrypted = NoUtil.encryptRSA(bytes, keyPair.getPublic());
+    byte[] encrypted = NoUtil.encryptRsa(bytes, keyPair.getPublic());
     try {
-      NoUtil.decryptRSA(encrypted, keyPair2.getPrivate());
+      NoUtil.decryptRsa(encrypted, keyPair2.getPrivate());
       fail("Did not throw exception with incorrect private key.");
     } catch (BadPaddingException e) {
       // Do nothing, correct
     }
     
-    byte[] decrypted = NoUtil.decryptRSA(encrypted, keyPair.getPrivate());
+    byte[] decrypted = NoUtil.decryptRsa(encrypted, keyPair.getPrivate());
     assertTrue(Arrays.equals(originalBytes, decrypted));
   }
 

@@ -180,7 +180,7 @@ public class NoUser implements Serializable {
 
   private final byte[] decryptRSA(byte[] data) throws InvalidKeyException,
       IllegalBlockSizeException, BadPaddingException {
-    return NoUtil.decryptRSA(data, this.privateKey);
+    return NoUtil.decryptRsa(data, this.privateKey);
   }
 
   public static NoUser createUserFromFile(byte[] data, char[] password)
