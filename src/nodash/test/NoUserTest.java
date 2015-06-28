@@ -70,10 +70,10 @@ public class NoUserTest {
   }
 
   @Test
-  public void testCreateUserFromFile() {
+  public void testCreateUserFromFile() throws IllegalBlockSizeException, BadPaddingException, ClassNotFoundException, IOException {
     NoUser user = new NoUser();
     final byte[] originalFile = user.createFile("password".toCharArray());
-    byte[] file = originalFile;
+    byte[] file = Arrays.copyOf(originalFile, originalFile.length);
     byte[] hash = user.createHash();
     String hashString = user.createHashString();
     user = null;
@@ -81,24 +81,36 @@ public class NoUserTest {
     try {
       user = NoUser.createUserFromFile(file, "wrongpassword".toCharArray());
       fail("Should have thrown an error when given wrong password.");
-    } catch (IllegalBlockSizeException e) {
-      fail("IllegalBlockSizeException encountered.");
     } catch (BadPaddingException e) {
       // Do nothing, correct
-    } catch (ClassNotFoundException e) {
-      fail("ClassNotFoundException encountered.");
-    } catch (IOException e) {
-      fail("IOException encountered.");
     }
     
-    try {
-      user = NoUser.createUserFromFile(file, "password".toCharArray());
-    } catch (IllegalBlockSizeException | BadPaddingException | ClassNotFoundException | IOException e) {
-      fail("Encountered an error of type " + e.getClass().getSimpleName());
-    }
-    
+    file = Arrays.copyOf(originalFile, originalFile.length);
+    user = NoUser.createUserFromFile(file, "password".toCharArray());
     assertTrue(Arrays.equals(hash, user.createHash()));
     assertEquals(hashString, user.createHashString());
+    
+    file = Arrays.copyOf(originalFile, originalFile.length);
+    try {
+      NoUser.createUserFromFile(file, null);
+      fail("Should have thrown a NullPointerException.");
+    } catch (NullPointerException e) {
+      // Do nothing, correct
+    }
+
+    try {
+      NoUser.createUserFromFile(null, "password".toCharArray());
+      fail("Should have thrown a NullPointerException.");
+    } catch (NullPointerException e) {
+      // Do nothing, correct
+    }
+
+    try {
+      NoUser.createUserFromFile(null, null);
+      fail("Should have thrown a NullPointerException.");
+    } catch (NullPointerException e) {
+      // Do nothing, correct
+    }
   }
 
 }
