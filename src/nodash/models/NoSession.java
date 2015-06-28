@@ -35,7 +35,7 @@ public final class NoSession implements Serializable {
   private final long expiry;
   private boolean newUserSession;
 
-  public ArrayList<NoByteSet> incoming;
+  public List<NoByteSet> incoming;
   public NoUser current;
   public UUID uuid;
 
