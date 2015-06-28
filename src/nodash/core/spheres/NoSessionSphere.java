@@ -176,12 +176,11 @@ public final class NoSessionSphere {
   }
 
   public static synchronized NoRegister registerUser(NoUser user, char[] password) {
-    NoRegister result = new NoRegister();
     NoSession session = new NoSession(user);
     NoSessionSphere.sessions.put(session.uuid, session);
-    result.cookie = session.getEncryptedUUID();
     try {
-      result.data = NoSessionSphere.save(result.cookie, password);
+      byte[] cookie = session.getEncryptedUUID();
+      return new NoRegister(cookie, NoSessionSphere.save(cookie, password));
     } catch (NoDashSessionBadUUIDException e) {
       throw new NoDashFatalException("Immediately generated cookie throwing bad cookie error.", e);
     } catch (NoSessionExpiredException e) {
@@ -196,6 +195,5 @@ public final class NoSessionSphere {
       throw new NoDashFatalException(
           "Session claims to be awaiting confirmation before returning data to the user.", e);
     }
-    return result;
   }
 }

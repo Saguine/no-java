@@ -20,4 +20,9 @@ package nodash.core;
 public final class NoRegister {
   public byte[] cookie;
   public byte[] data;
+  
+  public NoRegister(byte[] cookie, byte[] data) {
+    this.cookie = cookie;
+    this.data = data;
+  }
 }
