@@ -126,15 +126,15 @@ public class NoUtilTest {
   @Test
   public void testByteKeyEncryptionDecryptionAes() throws IllegalBlockSizeException, BadPaddingException {
     final byte[] originalBytes = {'s', 'o', 'm', 'e', 'b', 'y', 't', 'e', 's'};
-    final byte[] originalByteKey = {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
+    final String password = "password";
 
     byte[] bytes = Arrays.copyOf(originalBytes, originalBytes.length);
-    byte[] byteKey = Arrays.copyOf(originalByteKey, originalByteKey.length);
+    byte[] byteKey = NoUtil.getPbeKeyFromPassword(password.toCharArray());
 
     byte[] encryptedByByteKey = NoUtil.encrypt(bytes, byteKey);
 
     try {
-      NoUtil.decrypt(encryptedByByteKey, new byte[] {'b', 'a', 'd', 'k', 'e', 'y'});
+      NoUtil.decrypt(encryptedByByteKey, NoUtil.getPbeKeyFromPassword("badpass".toCharArray()));
       fail("Did not throw BadPaddingException while decrypting with bad key.");
     } catch (BadPaddingException e) {
       // Do nothing, correct
@@ -147,25 +147,21 @@ public class NoUtilTest {
     try {
       NoUtil.decrypt(nullByte, nullByte);
       fail("Allowed null parameter without thrown exception.");
-    } catch (NullPointerException e) {
+    } catch (IllegalArgumentException e) {
       // Do nothing, correct
-    } catch (IllegalBlockSizeException e) {
-      fail("Allowed null parameter without thrown exception.");
-    } catch (BadPaddingException e) {
-      fail("Allowed null parameter without thrown exception.");
     }
 
     try {
       NoUtil.decrypt(bytes, nullByte);
       fail("Allowed null parameter without thrown exception.");
-    } catch (NullPointerException e) {
+    } catch (IllegalArgumentException e) {
       // Do nothing, correct
     }
 
     try {
-      NoUtil.decrypt(nullByte, bytes);
+      NoUtil.decrypt(nullByte, NoUtil.getPbeKeyFromPassword(password.toCharArray()));
       fail("Allowed null parameter without thrown exception.");
-    } catch (NullPointerException e) {
+    } catch (IllegalArgumentException e) {
       // Do nothing, correct
     }
   }
@@ -181,12 +177,13 @@ public class NoUtilTest {
     byte[] encryptedByCharKey = NoUtil.encrypt(bytes, charKey);
 
     try {
-      NoUtil.decrypt(encryptedByCharKey, new byte[] {'b', 'a', 'd', 'k', 'e', 'y'});
+      NoUtil.decrypt(encryptedByCharKey, new char[] {'b', 'a', 'd', 'k', 'e', 'y'});
       fail("Did not throw BadPaddingException while decrypting with bad key.");
     } catch (BadPaddingException e) {
       // Do nothing, correct
     }
-    
+
+    charKey = Arrays.copyOf(originalCharKey, originalCharKey.length);
     byte[] decryptedByCharKey = NoUtil.decrypt(encryptedByCharKey, charKey);
     assertTrue(Arrays.equals(originalBytes, decryptedByCharKey));
     
@@ -195,21 +192,21 @@ public class NoUtilTest {
     try {
       NoUtil.decrypt(nullByte, nullChar);
       fail("Allowed null parameter without thrown exception.");
-    } catch (NullPointerException e) {
+    } catch (IllegalArgumentException e) {
       // Do nothing, correct
     }
 
     try {
       NoUtil.decrypt(bytes, nullChar);
       fail("Allowed null parameter without thrown exception.");
-    } catch (NullPointerException e) {
+    } catch (IllegalArgumentException e) {
       // Do nothing, correct
     }
 
     try {
       NoUtil.decrypt(nullByte, new char[] {'c', 'h', 'a', 'r'});
       fail("Allowed null parameter without thrown exception.");
-    } catch (NullPointerException e) {
+    } catch (IllegalArgumentException e) {
       // Do nothing, correct
     }
   }
@@ -226,7 +223,7 @@ public class NoUtilTest {
     try {
       NoUtil.decrypt(null);
       fail("Allowed null parameter without thrown exception.");
-    } catch (NullPointerException e) {
+    } catch (IllegalArgumentException e) {
       // Do nothing, correct
     }
   }

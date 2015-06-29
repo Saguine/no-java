@@ -100,14 +100,14 @@ public class NoUserTest {
 
     try {
       NoUser.createUserFromFile(null, "password".toCharArray());
-      fail("Should have thrown a NullPointerException.");
-    } catch (NullPointerException e) {
+      fail("Should have thrown a IllegalArgumentException.");
+    } catch (IllegalArgumentException e) {
       // Do nothing, correct
     }
 
     try {
       NoUser.createUserFromFile(null, null);
-      fail("Should have thrown a NullPointerException.");
+      fail("Should have thrown a IllegalArgumentException.");
     } catch (NullPointerException e) {
       // Do nothing, correct
     }

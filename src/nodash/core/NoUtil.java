@@ -77,7 +77,7 @@ public final class NoUtil {
     }
   }
 
-  private static byte[] getPbeKeyFromPassword(char[] password) {
+  public static byte[] getPbeKeyFromPassword(char[] password) {
     SecretKeyFactory skf;
     try {
       skf = SecretKeyFactory.getInstance(NoUtil.PBE_TYPE);
