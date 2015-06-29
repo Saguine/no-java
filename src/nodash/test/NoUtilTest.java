@@ -17,7 +17,6 @@ import javax.crypto.NoSuchPaddingException;
 
 import nodash.core.NoCore;
 import nodash.core.NoUtil;
-import nodash.exceptions.NoDashFatalException;
 
 import org.junit.Before;
 import org.junit.Test;
