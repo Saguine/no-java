@@ -46,9 +46,9 @@ public final class NoByteSetSphere {
   }
 
   public static List<NoByteSet> consume(NoUser user) {
-    if (NoByteSetSphere.byteSets.containsKey(user.getRSAPublicKey())) {
-      ArrayList<NoByteSet> result = NoByteSetSphere.byteSets.get(user.getRSAPublicKey());
-      NoByteSetSphere.byteSets.remove(user.getRSAPublicKey());
+    if (NoByteSetSphere.byteSets.containsKey(user.getRsaPublicKey())) {
+      ArrayList<NoByteSet> result = NoByteSetSphere.byteSets.get(user.getRsaPublicKey());
+      NoByteSetSphere.byteSets.remove(user.getRsaPublicKey());
       return result;
     } else {
       return NoByteSetSphere.EMPTY_BYTESET_LIST;

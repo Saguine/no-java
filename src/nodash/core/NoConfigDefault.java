@@ -28,7 +28,7 @@ import java.nio.file.StandardOpenOption;
 
 import nodash.exceptions.NoDashFatalException;
 
-public final class NoConfigDefault extends NoConfigBase implements Serializable {
+public final class NoConfigDefault extends NoConfigBase implements NoConfigInterface, Serializable {
   private static final long serialVersionUID = -8498303909736017075L;
 
   private static final String CONFIG_FILENAME = "noconfig.cfg";

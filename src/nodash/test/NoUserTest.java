@@ -28,7 +28,7 @@ public class NoUserTest {
     
     assertNotNull(user.getNoActions());
     assertEquals(user.getNoActions().size(), 0);
-    assertNotNull(user.getRSAPublicKey());
+    assertNotNull(user.getRsaPublicKey());
     assertNotNull(user.getPublicExponent());
     assertNotNull(user.getModulus());
     assertEquals(user.getInfluences(), 0);

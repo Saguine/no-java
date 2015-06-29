@@ -52,12 +52,12 @@ public final class NoSessionSphere {
     }
   }
 
-  public static void shred(byte[] encryptedUUID) {
+  public static void shred(byte[] encryptedUuid) {
     try {
-      UUID uuid = NoSession.decryptUuid(encryptedUUID);
+      UUID uuid = NoSession.decryptUuid(encryptedUuid);
       if (NoSessionSphere.sessions.containsKey(uuid)) {
         NoSession session = NoSessionSphere.sessions.get(uuid);
-        NoByteSetSphere.addList(session.incoming, session.current.getRSAPublicKey());
+        NoByteSetSphere.addList(session.incoming, session.current.getRsaPublicKey());
         NoSessionSphere.originalHashesOnline.remove(Base64.encodeBase64String(session
             .getOriginalHash()));
         NoSessionSphere.sessions.remove(uuid);
@@ -74,7 +74,7 @@ public final class NoSessionSphere {
       session.check();
     } catch (NoSessionExpiredException e) {
       /* Resultant from 3.1 and 3.2 */
-      NoByteSetSphere.addList(session.incoming, session.current.getRSAPublicKey());
+      NoByteSetSphere.addList(session.incoming, session.current.getRsaPublicKey());
       NoSessionSphere.originalHashesOnline.remove(session.getOriginalHash());
       NoSessionSphere.sessions.remove(uuid);
       session = null;

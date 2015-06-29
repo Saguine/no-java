@@ -131,7 +131,7 @@ public class NoUser implements Serializable {
   
   public final void consume(NoByteSet byteSet) throws NoByteSetBadDecryptionException {
     try {
-      SecretKey secretKey = new SecretKeySpec(decryptRSA(byteSet.key), NoUtil.CIPHER_KEY_SPEC);
+      SecretKey secretKey = new SecretKeySpec(decryptRsa(byteSet.key), NoUtil.CIPHER_KEY_SPEC);
       byte[] key = secretKey.getEncoded();
       secretKey = null;
       NoInfluence influence = NoInfluence.decrypt(byteSet.data, key);
@@ -166,7 +166,7 @@ public class NoUser implements Serializable {
     return ((RSAPublicKeyImpl) publicKey).getModulus();
   }
 
-  public final PublicKey getRSAPublicKey() {
+  public final PublicKey getRsaPublicKey() {
     try {
       return new RSAPublicKeyImpl(this.getModulus(), this.getPublicExponent());
     } catch (InvalidKeyException e) {
@@ -178,7 +178,7 @@ public class NoUser implements Serializable {
     return influences;
   }
 
-  private final byte[] decryptRSA(byte[] data) throws InvalidKeyException,
+  private final byte[] decryptRsa(byte[] data) throws InvalidKeyException,
       IllegalBlockSizeException, BadPaddingException {
     return NoUtil.decryptRsa(data, this.privateKey);
   }
