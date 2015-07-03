@@ -54,7 +54,6 @@ public final class NoUtil {
   public static final byte BLANK_BYTE = 'A';
 
   private static SecretKey setupSecretKey() {
-    System.out.println(System.getenv());
     String secretEnv = System.getenv("NODASH_SECRET");
     if (secretEnv == null) {
       throw new RuntimeException("Can't find NODASH_SECRET.");
