@@ -18,7 +18,7 @@ import javax.crypto.IllegalBlockSizeException;
 
 import org.apache.commons.codec.binary.Base64;
 
-import nodash.core.exceptions.NoAdapterException;
+import nodash.exceptions.NoAdapterException;
 import nodash.exceptions.NoDashFatalException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;

@@ -8,6 +8,7 @@ import nodash.core.NoAdapter;
 import nodash.core.NoCore;
 import nodash.core.NoDefaultAdapter;
 import nodash.core.NoRegister;
+import nodash.exceptions.NoAdapterException;
 import nodash.exceptions.NoDashSessionBadUuidException;
 import nodash.exceptions.NoSessionAlreadyAwaitingConfirmationException;
 import nodash.exceptions.NoSessionConfirmedException;
@@ -22,12 +23,6 @@ import nodash.models.NoUser;
 import org.junit.Test;
 
 public class NoCoreTest {
-
-  @Test
-  public void testLogin() {
-    NoCore core = new NoCore(new NoDefaultAdapter());
-    fail("Not yet implemented");
-  }
 
   @Test
   public void testRegister() {
@@ -70,7 +65,7 @@ public class NoCoreTest {
   @Test
   public void testSaveAndConfirm() throws NoSessionExpiredException, NoSessionConfirmedException,
       NoSessionNotAwaitingConfirmationException, NoUserNotValidException,
-      NoDashSessionBadUuidException, NoUserAlreadyOnlineException, NoSessionNotChangedException, NoSessionAlreadyAwaitingConfirmationException {
+      NoDashSessionBadUuidException, NoUserAlreadyOnlineException, NoSessionNotChangedException, NoSessionAlreadyAwaitingConfirmationException, NoAdapterException {
     NoAdapter adapter = new NoDefaultAdapter();
     NoCore core = new NoCore(adapter);
 
@@ -79,7 +74,7 @@ public class NoCoreTest {
     byte[] newUserFile = Arrays.copyOf(registration.data, registration.data.length);
     core.confirm(registration.cookie, "password".toCharArray(), newUserFile);
     byte[] newUserHash = newUser.createHash();
-    assertTrue(adapter.checkHash(newUserHash));
+    adapter.checkHash(newUserHash);
     
     NoUser newUserBadPass = new NoUser();
     registration = core.register(newUserBadPass, "password".toCharArray());
@@ -109,15 +104,20 @@ public class NoCoreTest {
     assertNotNull(adapter.getNoSession(oldUserCookie));
     oldUser.createFile("password".toCharArray()); // Touch the randomizer
     
-    NoUser oldUserRevisited = core.getUser(oldUserCookie);
+    NoUser oldUserRevisited = core.getNoUser(oldUserCookie);
     byte[] currentHash = oldUserRevisited.createHash();
     oldUserRevisited.createFile("password".toCharArray());
     byte[] oldCreatedFile = core.save(oldUserCookie, "new-password".toCharArray());
     byte[] oldUserHash = oldUserRevisited.createHash();
     core.confirm(oldUserCookie, "new-password".toCharArray(), oldCreatedFile);
     assertFalse(adapter.containsNoSession(oldUserCookie));
-    assertTrue(adapter.checkHash(oldUserHash));
-    assertFalse(adapter.checkHash(currentHash));
+    adapter.checkHash(oldUserHash);
+    try {
+      adapter.checkHash(currentHash);
+      fail("Did not fail on checkhash.");
+    } catch (NoUserNotValidException e) {
+      // Correct, do nothing
+    }
   }
 
 

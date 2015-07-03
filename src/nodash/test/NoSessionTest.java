@@ -10,11 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class NoSessionTest {
-  
-  @Before
-  public void setup() {
-    NoCore.setup();
-  }
 
   @Test
   public void testNoSession() throws NoSessionConfirmedException, NoSessionExpiredException {

@@ -17,11 +17,6 @@ import org.junit.Test;
 
 public class NoUserTest {
   
-  @Before
-  public void setup() {
-    NoCore.setup();
-  }
-
   @Test
   public void testNoUser() {
     NoUser user = new NoUser();

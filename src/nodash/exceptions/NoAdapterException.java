@@ -1,6 +1,5 @@
-package nodash.core.exceptions;
+package nodash.exceptions;
 
-import nodash.exceptions.NoDashException;
 
 public class NoAdapterException extends NoDashException {
   

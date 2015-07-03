@@ -23,11 +23,6 @@ import org.junit.Test;
 
 public class NoUtilTest {
   
-  @Before
-  public void setup() throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException {
-    NoCore.setup();
-  }
-  
   @Test
   public void testAllowedKeySize() throws NoSuchAlgorithmException {
     if (Cipher.getMaxAllowedKeyLength(NoUtil.CIPHER_KEY_SPEC) < NoUtil.AES_STRENGTH) {

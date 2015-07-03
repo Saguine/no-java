@@ -3,7 +3,7 @@ package nodash.core;
 import java.security.PublicKey;
 import java.util.Collection;
 
-import nodash.core.exceptions.NoAdapterException;
+import nodash.exceptions.NoAdapterException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoByteSet;

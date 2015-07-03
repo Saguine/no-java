@@ -17,7 +17,7 @@
 
 package nodash.core;
 
-import nodash.core.exceptions.NoAdapterException;
+import nodash.exceptions.NoAdapterException;
 import nodash.exceptions.NoByteSetBadDecryptionException;
 import nodash.exceptions.NoDashFatalException;
 import nodash.exceptions.NoSessionAlreadyAwaitingConfirmationException;

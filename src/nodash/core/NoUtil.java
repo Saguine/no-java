@@ -28,15 +28,19 @@ import java.security.spec.KeySpec;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.codec.binary.Base64;
+
 import nodash.exceptions.NoDashFatalException;
 
 public final class NoUtil {
+  public static final SecretKey SECRET_KEY = setupSecretKey();
   public static final String CIPHER_TYPE = "AES/ECB/PKCS5PADDING";
   public static final String CIPHER_KEY_SPEC = "AES";
   public static final String DIGEST_TYPE = "SHA-512";
@@ -48,6 +52,17 @@ public final class NoUtil {
   public static final int RSA_STRENGTH = 4096;
   public static final int AES_STRENGTH = 256;
   public static final byte BLANK_BYTE = 'A';
+
+  private static SecretKey setupSecretKey() {
+    System.out.println(System.getenv());
+    String secretEnv = System.getenv("NODASH_SECRET");
+    if (secretEnv == null) {
+      throw new RuntimeException("Can't find NODASH_SECRET.");
+    } else {
+      byte[] encoded= Base64.decodeBase64(secretEnv);
+      return new SecretKeySpec(encoded, 0, encoded.length, NoUtil.CIPHER_KEY_SPEC);
+    }
+  }
 
   public static char[] bytesToChars(byte[] array) {
     char[] result = new char[array.length];
@@ -84,7 +99,7 @@ public final class NoUtil {
     } catch (NoSuchAlgorithmException e) {
       throw new NoDashFatalException("Value for PBE_TYPE is not valid.", e);
     }
-    KeySpec spec = new PBEKeySpec(password, NoCore.config.getSecretKey().getEncoded(), 65536, 256);
+    KeySpec spec = new PBEKeySpec(password, SECRET_KEY.getEncoded(), 65536, 256);
     SecretKey key;
     try {
       key = skf.generateSecret(spec);
@@ -145,7 +160,7 @@ public final class NoUtil {
   }
 
   public static byte[] encrypt(byte[] data) {
-    return NoUtil.encrypt(data, NoCore.config.getSecretKey().getEncoded());
+    return NoUtil.encrypt(data, SECRET_KEY.getEncoded());
   }
 
   public static byte[] decrypt(byte[] data, byte[] key) throws IllegalBlockSizeException,
@@ -169,7 +184,7 @@ public final class NoUtil {
   }
 
   public static byte[] decrypt(byte[] data) throws IllegalBlockSizeException, BadPaddingException {
-    return NoUtil.decrypt(data, NoCore.config.getSecretKey().getEncoded());
+    return NoUtil.decrypt(data, SECRET_KEY.getEncoded());
   }
 
   public static byte[] encryptRsa(byte[] data, PublicKey publicKey) {
