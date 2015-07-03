@@ -13,11 +13,8 @@ import javax.crypto.IllegalBlockSizeException;
 import org.apache.commons.codec.binary.Base64;
 
 import nodash.core.NoAdapter;
-import nodash.core.NoCore;
 import nodash.core.NoUtil;
 import nodash.exceptions.NoByteSetBadDecryptionException;
-import nodash.exceptions.NoDashFatalException;
-import nodash.exceptions.NoDashSessionBadUuidException;
 import nodash.exceptions.NoSessionConfirmedException;
 import nodash.exceptions.NoSessionExpiredException;
 import nodash.exceptions.NoSessionNotAwaitingConfirmationException;
@@ -188,26 +185,6 @@ public final class NoSession implements Serializable {
       return this.original.createHash();
     } else {
       return null;
-    }
-  }
-  
-  private static String decryptUuid(String data) throws NoDashSessionBadUuidException {
-    return decryptUuid(Base64.decodeBase64(data));
-  }
-
-  private static String decryptUuid(byte[] data) throws NoDashSessionBadUuidException {
-    if (data == null) {
-      throw new NoDashSessionBadUuidException();
-    }
-
-    try {
-      return Base64.encodeBase64String(NoUtil.decrypt(data));
-    } catch (IllegalArgumentException e) {
-      throw new NoDashSessionBadUuidException();
-    } catch (IllegalBlockSizeException e) {
-      throw new NoDashSessionBadUuidException();
-    } catch (BadPaddingException e) {
-      throw new NoDashSessionBadUuidException();
     }
   }
   

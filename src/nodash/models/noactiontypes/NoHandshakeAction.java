@@ -23,8 +23,10 @@ package nodash.models.noactiontypes;
 
 import java.security.PublicKey;
 
-import nodash.core.NoCore;
+import nodash.core.NoAdapter;
+import nodash.exceptions.NoAdapterException;
 import nodash.exceptions.NoCannotGetInfluenceException;
+import nodash.exceptions.NoDashFatalException;
 import nodash.models.NoByteSet;
 import nodash.models.NoInfluence;
 
@@ -37,30 +39,33 @@ public abstract class NoHandshakeAction extends NoSourcedAction {
     super(target, source);
   }
 
-  public void execute() {
+  @Override
+  public void execute(NoAdapter adapter) {
     this.process();
     try {
       NoInfluence influence = this.generateTargetInfluence();
       if (influence != null) {
         NoByteSet byteSet = influence.getByteSet(this.target);
-        NoCore.addByteSet(byteSet, this.target);
+        adapter.addNoByteSet(byteSet, this.target);
       }
 
       NoInfluence result = this.generateReturnedInfluence();
       if (result != null) {
         NoByteSet byteSet = result.getByteSet(this.source);
-        NoCore.addByteSet(byteSet, this.source);
+        adapter.addNoByteSet(byteSet, this.source);
       }
     } catch (NoCannotGetInfluenceException e) {
       NoInfluence errorInfluence = e.getResponseInfluence();
       if (errorInfluence != null) {
         NoByteSet byteSet = errorInfluence.getByteSet(this.source);
-        NoCore.addByteSet(byteSet, this.source);
+        try {
+          adapter.addNoByteSet(byteSet, this.source);
+        } catch (NoAdapterException e1) {
+          throw new NoDashFatalException("Could not add error byte set to the pool.");
+        }
       }
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not add byte sets to the pool.", e);
     }
-  }
-
-  public void purge() {
-    super.purge();
   }
 }

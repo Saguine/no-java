@@ -8,11 +8,9 @@ import java.util.Arrays;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
-import nodash.core.NoCore;
 import nodash.models.NoUser;
 
 import org.apache.commons.codec.binary.Base64;
-import org.junit.Before;
 import org.junit.Test;
 
 public class NoUserTest {

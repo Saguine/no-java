@@ -1,12 +1,10 @@
 package nodash.test;
 
 import static org.junit.Assert.*;
-import nodash.core.NoCore;
 import nodash.exceptions.NoSessionConfirmedException;
 import nodash.exceptions.NoSessionExpiredException;
 import nodash.models.NoSession;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class NoSessionTest {

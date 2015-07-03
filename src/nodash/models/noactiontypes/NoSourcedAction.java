@@ -22,8 +22,10 @@ package nodash.models.noactiontypes;
 
 import java.security.PublicKey;
 
-import nodash.core.NoCore;
+import nodash.core.NoAdapter;
+import nodash.exceptions.NoAdapterException;
 import nodash.exceptions.NoCannotGetInfluenceException;
+import nodash.exceptions.NoDashFatalException;
 import nodash.models.NoByteSet;
 import nodash.models.NoInfluence;
 
@@ -38,23 +40,31 @@ public abstract class NoSourcedAction extends NoTargetedAction {
     this.source = source;
   }
 
-  public void execute() {
+  @Override
+  public void execute(NoAdapter adapter) {
     this.process();
     try {
       NoInfluence influence = this.generateTargetInfluence();
       if (influence != null) {
         NoByteSet byteSet = influence.getByteSet(this.target);
-        NoCore.addByteSet(byteSet, this.target);
+        adapter.addNoByteSet(byteSet, this.target);
       }
     } catch (NoCannotGetInfluenceException e) {
       NoInfluence errorInfluence = e.getResponseInfluence();
       if (errorInfluence != null) {
         NoByteSet byteSet = errorInfluence.getByteSet(this.source);
-        NoCore.addByteSet(byteSet, this.source);
+        try {
+          adapter.addNoByteSet(byteSet, this.source);
+        } catch (NoAdapterException e1) {
+          throw new NoDashFatalException("Could not add error byte set to the pool.", e);
+        }
       }
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not add byte set to the pool.", e);
     }
   }
 
+  @Override
   public void purge() {
     super.purge();
     this.source = null;

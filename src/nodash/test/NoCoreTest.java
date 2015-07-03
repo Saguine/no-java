@@ -17,7 +17,6 @@ import nodash.exceptions.NoSessionNotAwaitingConfirmationException;
 import nodash.exceptions.NoSessionNotChangedException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
-import nodash.models.NoSession;
 import nodash.models.NoUser;
 
 import org.junit.Test;
@@ -123,19 +122,16 @@ public class NoCoreTest {
 
   @Test
   public void testGetUser() {
-    NoCore core = new NoCore(new NoDefaultAdapter());
     fail("Not yet implemented");
   }
 
   @Test
   public void testGetSessionState() {
-    NoCore core = new NoCore(new NoDefaultAdapter());
     fail("Not yet implemented");
   }
 
   @Test
   public void testShred() {
-    NoCore core = new NoCore(new NoDefaultAdapter());
     fail("Not yet implemented");
   }
 

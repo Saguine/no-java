@@ -36,6 +36,8 @@ public interface NoAdapter {
 
   public Collection<NoByteSet> pollNoByteSets(PublicKey address) throws NoAdapterException;
 
-  public void addNoByteSets(Collection<NoByteSet> noByteSets, PublicKey address)
+  public void addNoByteSet(NoByteSet byteSet, PublicKey address) throws NoAdapterException;
+  
+  public void addNoByteSets(Collection<NoByteSet> byteSets, PublicKey address)
       throws NoAdapterException;
 }

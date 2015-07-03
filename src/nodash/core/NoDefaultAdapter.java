@@ -195,6 +195,14 @@ public class NoDefaultAdapter implements NoAdapter {
       return new ArrayList<NoByteSet>();
     }
   }
+  
+  @Override
+  public void addNoByteSet(NoByteSet byteSet, PublicKey address) {
+    if (!byteSets.containsKey(address)) {
+      byteSets.put(address, new ArrayList<NoByteSet>());
+    }
+    byteSets.get(address).add(byteSet);
+  }
 
   @Override
   public void addNoByteSets(Collection<NoByteSet> addedByteSets, PublicKey address) {
