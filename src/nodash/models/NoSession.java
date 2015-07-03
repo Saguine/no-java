@@ -2,6 +2,8 @@ package nodash.models;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,11 +12,12 @@ import javax.crypto.IllegalBlockSizeException;
 
 import org.apache.commons.codec.binary.Base64;
 
+import nodash.core.NoAdapter;
 import nodash.core.NoCore;
 import nodash.core.NoUtil;
 import nodash.exceptions.NoByteSetBadDecryptionException;
 import nodash.exceptions.NoDashFatalException;
-import nodash.exceptions.NoDashSessionBadUUIDException;
+import nodash.exceptions.NoDashSessionBadUuidException;
 import nodash.exceptions.NoSessionConfirmedException;
 import nodash.exceptions.NoSessionExpiredException;
 import nodash.exceptions.NoSessionNotAwaitingConfirmationException;
@@ -34,14 +37,14 @@ public final class NoSession implements Serializable {
   private final long expiry;
   private boolean newUserSession;
 
-  public List<NoByteSet> incoming;
-  public NoUser current;
-  public UUID uuid;
+  private Collection<NoByteSet> incoming;
+  private NoUser current;
+  private String uuid;
 
   public NoSession() {
     this.state = NoState.IDLE;
     this.expiry = System.currentTimeMillis() + NoSession.SESSION_DURATION;
-    this.uuid = UUID.randomUUID();
+    this.uuid = UUID.randomUUID().toString();
   }
 
   public NoSession(NoUser newUser) {
@@ -52,20 +55,12 @@ public final class NoSession implements Serializable {
     this.newUserSession = true;
   }
 
-  public NoSession(byte[] data, char[] password) throws NoUserNotValidException {
+  public NoSession(NoAdapter adapter, byte[] data, char[] password) throws NoUserNotValidException {
     this();
     this.newUserSession = false;
     this.state = NoState.IDLE;
-    char[] passwordDupe = password.clone();
     try {
       this.original = NoUser.createUserFromFile(data, password);
-      if (NoCore.hashSphere.checkHash(this.original.createHashString())) {
-        this.current = NoUser.createUserFromFile(data, passwordDupe);
-        this.uuid = UUID.randomUUID();
-        NoUtil.wipeBytes(data);
-      } else {
-        throw new NoUserNotValidException();
-      }
     } catch (IOException e) {
       throw new NoUserNotValidException();
     } catch (IllegalBlockSizeException e) {
@@ -87,7 +82,7 @@ public final class NoSession implements Serializable {
   }
 
   public NoState touchState() throws NoSessionConfirmedException, NoSessionExpiredException {
-    this.check();
+    check();
     if (this.newUserSession) {
       if (this.state != NoState.AWAITING_CONFIRMATION) {
         this.state = NoState.MODIFIED;
@@ -106,16 +101,16 @@ public final class NoSession implements Serializable {
 
   public byte[] initiateSaveAttempt(char[] password) throws NoSessionConfirmedException,
       NoSessionExpiredException {
-    this.touchState();
+    touchState();
     this.state = NoState.AWAITING_CONFIRMATION;
     byte[] file = this.current.createFile(password);
     NoUtil.wipeChars(password);
     return file;
   }
 
-  public void confirmSave(byte[] confirmData, char[] password) throws NoSessionConfirmedException,
+  public void confirmSave(NoAdapter adapter, byte[] confirmData, char[] password) throws NoSessionConfirmedException,
       NoSessionExpiredException, NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
-    this.check();
+    check();
     if (this.state != NoState.AWAITING_CONFIRMATION) {
       throw new NoSessionNotAwaitingConfirmationException();
     }
@@ -137,23 +132,8 @@ public final class NoSession implements Serializable {
     NoUtil.wipeChars(password);
     if (confirmed.createHashString().equals(this.current.createHashString())) {
       this.state = NoState.CONFIRMED;
-      /* 5.2: confirmed! */
-      if (!this.newUserSession) {
-        /* 5.2.1: remove old hash from array */
-        try {
-          NoCore.hashSphere.removeHash(this.original.createHashString());
-        } catch (IOException e) {
-          throw new NoDashFatalException("Unable to remove hash on confirm.", e);
-        }
-      }
-      /* 5.2.2: add new hash to array */
-      try {
-        NoCore.hashSphere.insertHash(this.current.createHashString());
-      } catch (IOException e) {
-        throw new NoDashFatalException("Unable to remove hash on confirm.", e);
-      }
-
       /* 5.2.3: clear influences as they will not need to be re-applied */
+      this.incoming = new ArrayList<NoByteSet>();
       List<NoAction> actions = this.current.getNoActions();
       this.incoming = null;
       this.original = null;
@@ -164,7 +144,7 @@ public final class NoSession implements Serializable {
          * It is assumed that actions are not long-running tasks It is also assumed that actions
          * have the information they need without the user objects
          */
-        action.execute();
+        action.execute(adapter);
         action.purge();
       }
     } else {
@@ -173,29 +153,34 @@ public final class NoSession implements Serializable {
   }
 
   public NoState getNoState() throws NoSessionConfirmedException, NoSessionExpiredException {
-    this.touchState();
+    touchState();
     return this.state;
   }
 
   public NoUser getNoUser() throws NoSessionConfirmedException, NoSessionExpiredException {
-    this.check();
+    check();
     return this.current;
   }
-
-  public UUID getUuid() {
+  
+  public NoUser getNoUserSafe() {
+    return this.current;
+  }
+  
+  public Collection<NoByteSet> getIncoming() throws NoSessionConfirmedException, NoSessionExpiredException {
+    check();
+    return this.incoming;
+  }
+  
+  public Collection<NoByteSet> getIncomingSafe() {
+    return this.incoming;
+  }
+  
+  public String getUuid() {
     return this.uuid;
   }
 
-  public String getUuidAsString() {
-    return this.uuid.toString();
-  }
-
   public byte[] getEncryptedUuid() {
-    return NoUtil.encrypt(Base64.encodeBase64(this.uuid.toString().getBytes()));
-  }
-
-  public String getEncryptedUuidAsString() {
-    return new String(this.getEncryptedUuid());
+    return NoUtil.encrypt(Base64.decodeBase64(getUuid()));
   }
 
   public byte[] getOriginalHash() {
@@ -205,24 +190,33 @@ public final class NoSession implements Serializable {
       return null;
     }
   }
+  
+  private static String decryptUuid(String data) throws NoDashSessionBadUuidException {
+    return decryptUuid(Base64.decodeBase64(data));
+  }
 
-  public static UUID decryptUuid(byte[] data) throws NoDashSessionBadUUIDException {
+  private static String decryptUuid(byte[] data) throws NoDashSessionBadUuidException {
     if (data == null) {
-      throw new NoDashSessionBadUUIDException();
+      throw new NoDashSessionBadUuidException();
     }
 
     try {
-      return UUID.fromString(new String(Base64.decodeBase64(NoUtil.decrypt(data))));
+      return Base64.encodeBase64String(NoUtil.decrypt(data));
     } catch (IllegalArgumentException e) {
-      throw new NoDashSessionBadUUIDException();
+      throw new NoDashSessionBadUuidException();
     } catch (IllegalBlockSizeException e) {
-      throw new NoDashSessionBadUUIDException();
+      throw new NoDashSessionBadUuidException();
     } catch (BadPaddingException e) {
-      throw new NoDashSessionBadUUIDException();
+      throw new NoDashSessionBadUuidException();
     }
   }
+  
+  public void setIncoming(Collection<NoByteSet> incoming) {
+    this.incoming = incoming;
+  }
 
-  public void consume(NoByteSet byteSet) throws NoByteSetBadDecryptionException {
+  public void consume(NoByteSet byteSet) throws NoByteSetBadDecryptionException, NoSessionConfirmedException, NoSessionExpiredException {
+    check();
     this.current.consume(byteSet);
   }
 

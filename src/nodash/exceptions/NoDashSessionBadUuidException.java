@@ -17,14 +17,14 @@
 
 package nodash.exceptions;
 
-public class NoDashSessionBadUUIDException extends Exception {
+public class NoDashSessionBadUuidException extends Exception {
   private static final long serialVersionUID = -402131397575158344L;
 
-  public NoDashSessionBadUUIDException() {
+  public NoDashSessionBadUuidException() {
     super();
   }
 
-  public NoDashSessionBadUUIDException(Exception e) {
+  public NoDashSessionBadUuidException(Exception e) {
     super(e);
   }
 }

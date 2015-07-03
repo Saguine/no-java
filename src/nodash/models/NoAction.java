@@ -19,12 +19,14 @@ package nodash.models;
 
 import java.io.Serializable;
 
+import nodash.core.NoAdapter;
+
 public abstract class NoAction implements Serializable {
   private static final long serialVersionUID = -194752850197321803L;
 
   public abstract void process();
 
-  public abstract void execute();
+  public abstract void execute(NoAdapter adapter);
 
   public abstract void purge();
 }

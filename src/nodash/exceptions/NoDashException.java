@@ -23,7 +23,11 @@ public class NoDashException extends Exception {
     super();
   }
 
-  public NoDashException(Exception e) {
+  public NoDashException(Throwable e) {
     super(e);
+  }
+  
+  public NoDashException(String message, Throwable e) {
+    super(message, e);
   }
 }

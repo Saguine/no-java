@@ -17,14 +17,9 @@
 
 package nodash.core;
 
-import java.io.IOException;
-import java.security.PublicKey;
-
-import nodash.core.spheres.NoByteSetSphere;
-import nodash.core.spheres.NoHashSphereDefault;
-import nodash.core.spheres.NoHashSphereInterface;
-import nodash.core.spheres.NoSessionSphere;
-import nodash.exceptions.NoDashSessionBadUUIDException;
+import nodash.core.exceptions.NoAdapterException;
+import nodash.exceptions.NoByteSetBadDecryptionException;
+import nodash.exceptions.NoDashFatalException;
 import nodash.exceptions.NoSessionAlreadyAwaitingConfirmationException;
 import nodash.exceptions.NoSessionConfirmedException;
 import nodash.exceptions.NoSessionExpiredException;
@@ -33,98 +28,198 @@ import nodash.exceptions.NoSessionNotChangedException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoByteSet;
+import nodash.models.NoSession;
 import nodash.models.NoUser;
 import nodash.models.NoSession.NoState;
 
 public final class NoCore {
-  public static NoConfigInterface config;
-  public static NoHashSphereInterface hashSphere;
+  private NoAdapter adapter;
 
-  public static boolean isReady() {
-    return (config != null && config.isReady()) && (hashSphere != null && hashSphere.isReady());
+  public NoCore(NoAdapter adapter) {
+    this.adapter = adapter;
   }
 
-  public static void setup(NoConfigInterface config, NoHashSphereInterface hashSphere) {
-    NoCore.setup(config);
-    NoCore.setup(hashSphere);
-  }
-
-  public static void setup(NoConfigInterface config) {
-    NoCore.config = config;
-  }
-
-  public static void setup(NoHashSphereInterface hashSphere) {
-    NoCore.hashSphere = hashSphere;
-    hashSphere.setup();
-  }
-
-  public static void setup() {
-    NoConfigInterface newConfig = new NoConfigDefault();
+  private NoSession getNoSession(byte[] cookie) throws NoSessionExpiredException {
+    boolean containsSession;
     try {
-      newConfig = newConfig.loadNoConfig();
-    } catch (IOException e) {
-      newConfig.construct();
+      containsSession = adapter.containsNoSession(cookie);
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not verify existence of session.", e);
     }
-    NoCore.setup(newConfig);
-    NoCore.setup(new NoHashSphereDefault());
+
+    if (containsSession) {
+      try {
+        return adapter.getNoSession(cookie);
+      } catch (NoAdapterException e) {
+        throw new NoDashFatalException("Could not get session.", e);
+      }
+    }
+    throw new NoSessionExpiredException();
   }
 
-  public static byte[] login(byte[] data, char[] password) throws NoUserNotValidException,
+  public byte[] login(byte[] data, char[] password) throws NoUserNotValidException,
       NoUserAlreadyOnlineException, NoSessionExpiredException {
-    /* steps 1 through to pre-3 */
-    return NoSessionSphere.login(data, password);
+    NoSession session = new NoSession(adapter, data, password);
+
+    /* 1. Check that user is a valid user of the system based on their hash. */
+    try {
+      adapter.checkHash(session.getOriginalHash());
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Unable to verify user.");
+    }
+
+    /* 2. Attempt to set user to online (avoid two of the same account online at the same time) */
+    try {
+      adapter.goOnline(session.getOriginalHash());
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not mark user as online.", e);
+    }
+
+    /* 3. Add the session to the live session pool. */
+    try {
+      adapter.addNoSession(session);
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not add the session.", e);
+    }
+
+    /* 4. Transfer any incoming NoByteSets to session. */
+    try {
+      session.setIncoming(adapter.pollNoByteSets(session.getNoUserSafe().getRsaPublicKey()));
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not get incoming byte sets.", e);
+    }
+
+    /* 5. Apply any incoming ByteSets to the session. */
+    for (NoByteSet byteSet : session.getIncomingSafe()) {
+      try {
+        session.consume(byteSet);
+      } catch (NoByteSetBadDecryptionException e) {
+        throw new NoDashFatalException("Bad byte sets on consumption.", e);
+      } catch (NoSessionConfirmedException e) {
+        throw new NoDashFatalException("NoSession is confirmed despite being newly created.");
+      } finally {
+        try {
+          adapter.addNoByteSets(session.getIncomingSafe(), session.getNoUserSafe()
+              .getRsaPublicKey());
+        } catch (NoAdapterException e) {
+          throw new NoDashFatalException("Could not return failed byte sets to pool.", e);
+        }
+      }
+    }
+
+    /* 6. Check the session to see if the incoming actions have modified it at all. */
+    try {
+      session.check();
+    } catch (NoSessionConfirmedException e) {
+      throw new NoDashFatalException("NoSession is confirmed despite being newly created.");
+    }
+
+    return session.getEncryptedUuid();
   }
 
-  public static NoRegister register(NoUser user, char[] password) {
-    /* Straight to step 4 */
-    return NoSessionSphere.registerUser(user, password);
+  public NoRegister register(NoUser user, char[] password) {
+    NoSession session = new NoSession(user);
+    try {
+      adapter.addNoSession(session);
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Adapter could not save the session.", e);
+    }
+
+    byte[] cookie = session.getEncryptedUuid();
+    byte[] userFile;
+    try {
+      userFile = save(cookie, password);
+    } catch (NoSessionExpiredException e) {
+      throw new NoDashFatalException("Session expired despite just being created.");
+    } catch (NoSessionConfirmedException e) {
+      throw new NoDashFatalException("Session confirmed despite just being created.");
+    } catch (NoSessionNotChangedException e) {
+      throw new NoDashFatalException(
+          "Session throwing NotChangedException despite being a new user");
+    } catch (NoSessionAlreadyAwaitingConfirmationException e) {
+      throw new NoDashFatalException(
+          "Session already waiting confirmation despite just being created.");
+    }
+
+    return new NoRegister(cookie, userFile);
   }
 
-  public static NoUser getUser(byte[] cookie) throws NoSessionExpiredException,
-      NoSessionConfirmedException, NoDashSessionBadUUIDException {
-    /*
-     * Facilitates step 3 allow website-side modifications to the NoUser or NoUser inheritant
-     */
-    return NoSessionSphere.getUser(cookie);
+  public NoUser getNoUser(byte[] cookie) throws NoSessionExpiredException,
+      NoSessionConfirmedException {
+    boolean containsSession;
+    try {
+      containsSession = adapter.containsNoSession(cookie);
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not verify existence of session.", e);
+    }
+
+    if (containsSession) {
+      try {
+        return adapter.getNoSession(cookie).getNoUser();
+      } catch (NoAdapterException e) {
+        throw new NoDashFatalException("Could not get session.", e);
+      }
+    } else {
+      throw new NoSessionExpiredException();
+    }
   }
 
-  public static NoState getSessionState(byte[] cookie) throws NoSessionExpiredException,
-      NoSessionConfirmedException, NoDashSessionBadUUIDException {
-    /*
-     * Facilitates step 3 allow front-side to keep track of session state
-     */
-    return NoSessionSphere.getState(cookie);
+  public NoState getSessionState(byte[] cookie) throws NoSessionConfirmedException,
+      NoSessionExpiredException {
+    return getNoSession(cookie).getNoState();
   }
 
-  public static byte[] requestSave(byte[] cookie, char[] password)
-      throws NoSessionExpiredException, NoSessionConfirmedException, NoSessionNotChangedException,
-      NoSessionAlreadyAwaitingConfirmationException, NoDashSessionBadUUIDException {
-    /* Step 4. Provides a user with the new binary file */
-    return NoSessionSphere.save(cookie, password);
+  public byte[] save(byte[] cookie, char[] password) throws NoSessionExpiredException,
+      NoSessionConfirmedException, NoSessionNotChangedException,
+      NoSessionAlreadyAwaitingConfirmationException {
+    NoSession session = getNoSession(cookie);
+    session.check();
+    if (session.getNoState().equals(NoState.IDLE)) {
+      throw new NoSessionNotChangedException();
+    } else if (session.getNoState().equals(NoState.AWAITING_CONFIRMATION)) {
+      throw new NoSessionAlreadyAwaitingConfirmationException();
+    }
+    return session.initiateSaveAttempt(password);
   }
 
-  public static void confirm(byte[] cookie, char[] password, byte[] data)
-      throws NoSessionExpiredException, NoSessionConfirmedException,
-      NoSessionNotAwaitingConfirmationException, NoUserNotValidException,
-      NoDashSessionBadUUIDException {
-    /*
-     * Step 5. Assumes the user has re-uploaded the file along with providing the same password.
-     * Further attempts of getUser or getSessionState will fail with a NoSessionExpiredException
-     */
-    NoSessionSphere.confirm(cookie, password, data);
+  public void confirm(byte[] cookie, char[] password, byte[] data) throws NoSessionExpiredException, NoSessionConfirmedException, NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
+    NoSession session = getNoSession(cookie);
+    byte[] oldHash = session.getOriginalHash();
+    byte[] newHash = session.getNoUserSafe().createHash();
+    
+    session.confirmSave(adapter, data, password);
+    
+    try {
+      adapter.insertHash(newHash);
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not insert confirmed hash.", e);
+    }
+    
+    try {
+      adapter.goOffline(newHash);
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not go offline.", e);
+    }
+    
+    try {
+      adapter.shredNoSession(cookie);
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not shred session.", e);
+    }
+
+    try {
+      adapter.removeHash(oldHash);
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not remove old hash.", e);
+    }
   }
 
-  public static void addByteSet(NoByteSet byteSet, PublicKey publicKey) {
-    NoByteSetSphere.add(byteSet, publicKey);
-  }
-
-  public static void shred(byte[] cookie) {
-    /* 3.2 Hot pull */
-    NoSessionSphere.shred(cookie);
-  }
-
-  public static void triggerPrune() {
-    NoSessionSphere.prune();
+  public void shred(byte[] cookie) {
+    try {
+      adapter.shredNoSession(cookie);
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not shred session.", e);
+    }
   }
 
 }
