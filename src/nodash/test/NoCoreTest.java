@@ -7,7 +7,6 @@ import java.util.Arrays;
 import nodash.core.NoAdapter;
 import nodash.core.NoCore;
 import nodash.core.NoDefaultAdapter;
-import nodash.core.NoRegister;
 import nodash.exceptions.NoAdapterException;
 import nodash.exceptions.NoDashFatalException;
 import nodash.exceptions.NoDashSessionBadUuidException;
@@ -18,6 +17,7 @@ import nodash.exceptions.NoSessionNotAwaitingConfirmationException;
 import nodash.exceptions.NoSessionNotChangedException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
+import nodash.models.NoRegister;
 import nodash.models.NoUser;
 import nodash.models.NoSession.NoState;
 

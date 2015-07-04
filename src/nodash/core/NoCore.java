@@ -28,6 +28,7 @@ import nodash.exceptions.NoSessionNotChangedException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoByteSet;
+import nodash.models.NoRegister;
 import nodash.models.NoSession;
 import nodash.models.NoUser;
 import nodash.models.NoSession.NoState;

@@ -15,7 +15,7 @@
  * registration.
  */
 
-package nodash.core;
+package nodash.models;
 
 public final class NoRegister {
   public final byte[] cookie;
