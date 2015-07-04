@@ -33,6 +33,14 @@ import nodash.models.NoSession;
 import nodash.models.NoUser;
 import nodash.models.NoSession.NoState;
 
+/**
+ * The NoCore object should be the sole point of contact for the outside world. Through the life of
+ * the application the NoCore class is used to get the User object, register, save and confirm in
+ * the no-system.
+ * 
+ * @author horsey
+ *
+ */
 public final class NoCore {
   private NoAdapter adapter;
 
