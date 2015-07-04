@@ -17,6 +17,8 @@
 
 package nodash.core;
 
+import org.apache.commons.codec.binary.Base64;
+
 import nodash.exceptions.NoAdapterException;
 import nodash.exceptions.NoByteSetBadDecryptionException;
 import nodash.exceptions.NoDashFatalException;
@@ -59,7 +61,7 @@ public final class NoCore {
 
   public byte[] login(byte[] data, char[] password) throws NoUserNotValidException,
       NoUserAlreadyOnlineException, NoSessionExpiredException {
-    NoSession session = new NoSession(adapter, data, password);
+    NoSession session = new NoSession(data, password);
 
     /* 1. Check that user is a valid user of the system based on their hash. */
     try {
@@ -129,6 +131,7 @@ public final class NoCore {
     byte[] userFile;
     try {
       userFile = save(cookie, password);
+      adapter.goOnline(user.createHash());
     } catch (NoSessionExpiredException e) {
       throw new NoDashFatalException("Session expired despite just being created.");
     } catch (NoSessionConfirmedException e) {
@@ -139,6 +142,10 @@ public final class NoCore {
     } catch (NoSessionAlreadyAwaitingConfirmationException e) {
       throw new NoDashFatalException(
           "Session already waiting confirmation despite just being created.");
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not go online.", e);
+    } catch (NoUserAlreadyOnlineException e) {
+      throw new NoDashFatalException("User with same hash is already online.");
     }
 
     return new NoRegister(cookie, userFile);
@@ -196,29 +203,44 @@ public final class NoCore {
     }
     
     try {
-      adapter.goOffline(newHash);
+      adapter.shredNoSession(cookie);
+    } catch (NoAdapterException e) {
+      throw new NoDashFatalException("Could not shred session.", e);
+    }
+    
+    try {
+      adapter.goOffline(session.getNoUserSafe().createHash());
     } catch (NoAdapterException e) {
       throw new NoDashFatalException("Could not go offline.", e);
     }
+
+    if (!session.isNewUser()) {
+      try {
+        adapter.removeHash(oldHash);
+      } catch (NoAdapterException e) {
+        throw new NoDashFatalException("Could not remove old hash.", e);
+      }
+    }
+  }
+
+  public void shred(byte[] cookie) throws NoSessionExpiredException {
+    NoSession session = getNoSession(cookie);
     
     try {
       adapter.shredNoSession(cookie);
     } catch (NoAdapterException e) {
       throw new NoDashFatalException("Could not shred session.", e);
     }
-
+    
     try {
-      adapter.removeHash(oldHash);
+      adapter.addNoByteSets(session.getIncomingSafe(), session.getNoUserSafe().getRsaPublicKey());
     } catch (NoAdapterException e) {
-      throw new NoDashFatalException("Could not remove old hash.", e);
+      throw new NoDashFatalException("Could not add bytesets back into pool.");
     }
-  }
-
-  public void shred(byte[] cookie) {
     try {
-      adapter.shredNoSession(cookie);
+      adapter.goOffline(session.getNoUserSafe().createHash());
     } catch (NoAdapterException e) {
-      throw new NoDashFatalException("Could not shred session.", e);
+      throw new NoDashFatalException("Could not go offline.", e);
     }
   }
 

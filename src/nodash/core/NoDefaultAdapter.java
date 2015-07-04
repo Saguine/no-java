@@ -44,19 +44,21 @@ public class NoDefaultAdapter implements NoAdapter {
 
   private static synchronized byte[] alterFile(byte[] hashToAdd, byte[] hashToRemove)
       throws IOException {
-    if (!(hashToAdd == null ^ hashToRemove == null) && Arrays.equals(hashToAdd, hashToRemove)) {
-      throw new IllegalArgumentException("Hashes to add and remove cannot be the same.");
-    }
-
     File file = new File(HASH_FILE);
+    if (!file.exists()) {
+      Files.createFile(file.toPath());
+    }
     byte[] originalFileBytes = Files.readAllBytes(file.toPath());
     if (hashToAdd == null && hashToRemove == null) {
       return originalFileBytes;
     }
 
+    if (!(hashToAdd == null ^ hashToRemove == null) && Arrays.equals(hashToAdd, hashToRemove)) {
+      throw new IllegalArgumentException("Hashes to add and remove cannot be the same.");
+    }
     int hashes = originalFileBytes.length / 64;
     List<Byte> newFile = new ArrayList<Byte>();
-
+    
     for (int x = 0; x < hashes; x++) {
       byte[] hash = Arrays.copyOfRange(originalFileBytes, x * 64, x * 64 + 64);
 
@@ -66,7 +68,7 @@ public class NoDefaultAdapter implements NoAdapter {
         }
       }
 
-      if (hashToAdd != null || Arrays.equals(hash, hashToAdd)) {
+      if (hashToAdd != null && Arrays.equals(hash, hashToAdd)) {
         hashToAdd = null;
       }
     }
@@ -152,7 +154,7 @@ public class NoDefaultAdapter implements NoAdapter {
   public boolean containsNoSession(byte[] encryptedUuid) {
     String uuid;
     try {
-      uuid = Base64.encodeBase64String(NoUtil.decrypt(encryptedUuid));
+      uuid = Base64.encodeBase64URLSafeString(NoUtil.decrypt(encryptedUuid));
     } catch (IllegalBlockSizeException | BadPaddingException e) {
       throw new NoDashFatalException("Could not decrypt given UUID.", e);
     }
@@ -163,7 +165,6 @@ public class NoDefaultAdapter implements NoAdapter {
   @Override
   public void shredNoSession(byte[] encryptedUuid) {
     NoSession session = getNoSession(encryptedUuid);
-    addNoByteSets(session.getIncomingSafe(), session.getNoUserSafe().getRsaPublicKey());
     sessions.remove(session.getUuid());
   }
 
@@ -172,7 +173,7 @@ public class NoDefaultAdapter implements NoAdapter {
     if (containsNoSession(encryptedUuid)) {
       String uuid;
       try {
-        uuid = Base64.encodeBase64String(NoUtil.decrypt(encryptedUuid));
+        uuid = Base64.encodeBase64URLSafeString(NoUtil.decrypt(encryptedUuid));
       } catch (IllegalBlockSizeException | BadPaddingException e) {
         throw new NoDashFatalException("Could not decrypt given UUID.", e);
       }
@@ -206,6 +207,14 @@ public class NoDefaultAdapter implements NoAdapter {
 
   @Override
   public void addNoByteSets(Collection<NoByteSet> addedByteSets, PublicKey address) {
+    if (addedByteSets == null) {
+      return;
+    }
+    
+    if (address == null) {
+      throw new NullPointerException("Address cannot be null.");
+    }
+    
     if (byteSets.containsKey(address)) {
       byteSets.get(address).addAll(addedByteSets);
     } else {
@@ -215,7 +224,7 @@ public class NoDefaultAdapter implements NoAdapter {
 
   @Override
   public void goOnline(byte[] hash) throws NoUserAlreadyOnlineException {
-    String hashString = Base64.encodeBase64String(hash);
+    String hashString = Base64.encodeBase64URLSafeString(hash);
     if (online.contains(hashString)) {
       throw new NoUserAlreadyOnlineException();
     }
@@ -224,13 +233,13 @@ public class NoDefaultAdapter implements NoAdapter {
 
   @Override
   public boolean isOnline(byte[] hash) {
-    String hashString = Base64.encodeBase64String(hash);
+    String hashString = Base64.encodeBase64URLSafeString(hash);
     return online.contains(hashString);
   }
 
   @Override
   public void goOffline(byte[] hash) {
-    String hashString = Base64.encodeBase64String(hash);
+    String hashString = Base64.encodeBase64URLSafeString(hash);
     online.remove(hashString);
   }
 

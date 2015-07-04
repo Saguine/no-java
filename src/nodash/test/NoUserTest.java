@@ -59,7 +59,7 @@ public class NoUserTest {
     byte[] hash = user.createHash();
     String hashString = user.createHashString();
     
-    assertEquals(Base64.encodeBase64String(hash), hashString);
+    assertEquals(Base64.encodeBase64URLSafeString(hash), hashString);
   }
 
   @Test

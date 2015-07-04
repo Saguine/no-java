@@ -195,7 +195,21 @@ public class NoUser implements Serializable {
   }
 
   public String createHashString() {
-    return Base64.encodeBase64String(this.createHash());
+    return Base64.encodeBase64URLSafeString(this.createHash());
   }
 
+  @Override
+  public boolean equals(Object otherUser) {
+    if (otherUser == null) {
+      return false;
+    }
+    
+    if (!otherUser.getClass().equals(getClass())) {
+      return false;
+    }
+    
+    return this.privateKey.equals(((NoUser) otherUser).privateKey);
+  }
+  
+  
 }

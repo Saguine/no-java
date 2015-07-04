@@ -4,6 +4,7 @@ import java.security.PublicKey;
 import java.util.Collection;
 
 import nodash.exceptions.NoAdapterException;
+import nodash.exceptions.NoSessionExpiredException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoByteSet;
@@ -19,11 +20,11 @@ public interface NoAdapter {
   public byte[][] exportHashes() throws NoAdapterException;
 
   public long hashCount() throws NoAdapterException;
-  
+
   public void goOnline(byte[] hash) throws NoAdapterException, NoUserAlreadyOnlineException;
-  
+
   public boolean isOnline(byte[] hash) throws NoAdapterException;
-  
+
   public void goOffline(byte[] hash) throws NoAdapterException;
 
   public void addNoSession(NoSession session) throws NoAdapterException;
@@ -32,12 +33,13 @@ public interface NoAdapter {
 
   public void shredNoSession(byte[] encryptedUuid) throws NoAdapterException;
 
-  public NoSession getNoSession(byte[] encryptedUuid) throws NoAdapterException;
+  public NoSession getNoSession(byte[] encryptedUuid) throws NoAdapterException,
+      NoSessionExpiredException;
 
   public Collection<NoByteSet> pollNoByteSets(PublicKey address) throws NoAdapterException;
 
   public void addNoByteSet(NoByteSet byteSet, PublicKey address) throws NoAdapterException;
-  
+
   public void addNoByteSets(Collection<NoByteSet> byteSets, PublicKey address)
       throws NoAdapterException;
 }
