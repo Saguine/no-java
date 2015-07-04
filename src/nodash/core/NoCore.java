@@ -17,8 +17,6 @@
 
 package nodash.core;
 
-import org.apache.commons.codec.binary.Base64;
-
 import nodash.exceptions.NoAdapterException;
 import nodash.exceptions.NoByteSetBadDecryptionException;
 import nodash.exceptions.NoDashFatalException;

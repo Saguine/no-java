@@ -21,7 +21,6 @@ import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoUser;
 import nodash.models.NoSession.NoState;
 
-import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 
 public class NoCoreTest {
