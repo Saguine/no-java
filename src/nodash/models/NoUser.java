@@ -56,6 +56,7 @@ public class NoUser implements Serializable {
   private String randomized;
 
   private int influences;
+  private int actions;
 
   private List<NoAction> outgoing = new ArrayList<NoAction>();
 
@@ -80,6 +81,7 @@ public class NoUser implements Serializable {
     this.publicKey = keyPair.getPublic();
     this.privateKey = keyPair.getPrivate();
     this.influences = 0;
+    this.actions = 0;
     this.touchRandomizer();
   }
 
@@ -152,6 +154,7 @@ public class NoUser implements Serializable {
 
   public final void addAction(NoAction action) {
     this.outgoing.add(action);
+    actions++;
   }
 
   public final List<NoAction> getNoActions() {
