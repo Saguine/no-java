@@ -56,6 +56,7 @@ public class NoUser implements Serializable {
   private String randomized;
 
   private int influences;
+  @SuppressWarnings("unused")
   private int actions;
 
   private List<NoAction> outgoing = new ArrayList<NoAction>();

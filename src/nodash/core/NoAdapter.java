@@ -18,7 +18,6 @@
 package nodash.core;
 
 import java.security.PublicKey;
-import java.util.Collection;
 import java.util.List;
 
 import nodash.exceptions.NoAdapterException;

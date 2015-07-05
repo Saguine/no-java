@@ -17,7 +17,6 @@ import nodash.exceptions.NoSessionNotChangedException;
 import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoRegister;
-import nodash.models.NoUser;
 import nodash.test.functional.implementations.TestJustTouchStaticField;
 import nodash.test.functional.implementations.TestNoUser;
 import nodash.test.functional.implementations.TestRequestFunds;

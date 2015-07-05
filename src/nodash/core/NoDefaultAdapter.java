@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -204,7 +203,8 @@ public class NoDefaultAdapter implements NoAdapter {
     if (byteSets.containsKey(address)) {
       List<NoByteSet> storedByteSets = byteSets.get(address);
       List<NoByteSet> result = new ArrayList<NoByteSet>();
-      for (int x = 0; x < storedByteSets.size(); x++) {
+      int iterations = storedByteSets.size();
+      for (int x = 0; x < iterations; x++) {
         result.add(storedByteSets.get(0));
         storedByteSets.remove(0);
       }
