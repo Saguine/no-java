@@ -336,8 +336,13 @@ public final class NoCore {
     } catch (NoAdapterException e) {
       throw new NoDashFatalException("Could not add bytesets back into pool.");
     }
+    
     try {
-      adapter.goOffline(session.getNoUserSafe().createHash());
+      if (!session.isNewUser()) {
+        adapter.goOffline(session.getOriginalHash());
+      } else {
+        adapter.goOffline(session.getNoUserSafe().createHash());
+      }
     } catch (NoAdapterException e) {
       throw new NoDashFatalException("Could not go offline.", e);
     }
