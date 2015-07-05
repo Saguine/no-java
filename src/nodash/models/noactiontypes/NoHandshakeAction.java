@@ -43,13 +43,13 @@ public abstract class NoHandshakeAction extends NoSourcedAction {
   public void execute(NoAdapter adapter) {
     this.process();
     try {
-      NoInfluence influence = this.generateTargetInfluence();
+      NoInfluence influence = generateTargetInfluence();
       if (influence != null) {
         NoByteSet byteSet = influence.getByteSet(this.target);
         adapter.addNoByteSet(byteSet, this.target);
       }
 
-      NoInfluence result = this.generateReturnedInfluence();
+      NoInfluence result = generateReturnedInfluence();
       if (result != null) {
         NoByteSet byteSet = result.getByteSet(this.source);
         adapter.addNoByteSet(byteSet, this.source);

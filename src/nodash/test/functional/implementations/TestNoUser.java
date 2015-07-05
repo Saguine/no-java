@@ -1,4 +1,7 @@
-package nodash.test.functional;
+package nodash.test.functional.implementations;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import nodash.models.NoUser;
 
@@ -9,11 +12,13 @@ public class TestNoUser extends NoUser {
   private static final long serialVersionUID = 1L;
   private String username;
   private int money;
+  private List<String> receipts;
   
   public TestNoUser(String username) {
     super();
     this.username = username;
     this.money = 0;
+    this.receipts = new ArrayList<String>();
   }
 
   public String getUsername() {
@@ -30,6 +35,14 @@ public class TestNoUser extends NoUser {
 
   public void setMoney(int money) {
     this.money = money;
+  }
+  
+  public void addReceipt(String receipt) {
+    this.receipts.add(receipt);
+  }
+  
+  public List<String> getReceipts() {
+    return receipts;
   }
   
 }
