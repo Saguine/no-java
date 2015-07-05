@@ -5,7 +5,6 @@ import java.security.PublicKey;
 import nodash.exceptions.NoCannotGetInfluenceException;
 import nodash.models.NoInfluence;
 import nodash.models.noactiontypes.NoErrorableAction;
-import nodash.models.noactiontypes.NoSourcedAction;
 
 public class TestRequestFunds extends NoErrorableAction {
   private static final long serialVersionUID = 1L;

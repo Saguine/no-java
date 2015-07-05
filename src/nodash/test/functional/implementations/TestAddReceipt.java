@@ -15,7 +15,6 @@ public class TestAddReceipt extends NoInfluence {
   @Override
   public void applyTo(NoUser user) {
     TestNoUser test = (TestNoUser) user;
-    System.out.println("Applying " + receipt + " to " + test.getUsername());
     test.addReceipt(receipt);
   }
 

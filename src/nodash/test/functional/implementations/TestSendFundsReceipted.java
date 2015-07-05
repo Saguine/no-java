@@ -22,7 +22,6 @@ public class TestSendFundsReceipted extends NoHandshakeAction {
 
   @Override
   protected NoInfluence generateTargetInfluence() throws NoCannotGetInfluenceException {
-    System.out.println("Added influence to source.");
     return new TestIncreaseMoneyReceipted(this.source, fundsToSend);
   }
 

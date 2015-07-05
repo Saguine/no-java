@@ -17,7 +17,6 @@ public class TestSendReceipt extends NoTargetedAction {
 
   @Override
   protected NoInfluence generateTargetInfluence() throws NoCannotGetInfluenceException {
-    System.out.println("Adding receipt influence: " + receipt);
     return new TestAddReceipt(receipt);
   }
 
