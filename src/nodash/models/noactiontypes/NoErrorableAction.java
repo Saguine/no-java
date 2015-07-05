@@ -34,7 +34,7 @@ public abstract class NoErrorableAction extends NoTargetedAction {
   private static final long serialVersionUID = -6077150774349400823L;
 
   public NoErrorableAction(PublicKey source) {
-    // Note that
+    // Note that "target" is the source
     super(source);
   }
 
