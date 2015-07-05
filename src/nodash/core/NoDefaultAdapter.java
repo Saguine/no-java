@@ -43,8 +43,8 @@ import nodash.models.NoByteSet;
 import nodash.models.NoSession;
 
 public class NoDefaultAdapter implements NoAdapter {
-  private static Map<PublicKey, Collection<NoByteSet>> byteSets =
-      new ConcurrentHashMap<PublicKey, Collection<NoByteSet>>();
+  private static Map<PublicKey, List<NoByteSet>> byteSets =
+      new ConcurrentHashMap<PublicKey, List<NoByteSet>>();
   private static Map<String, NoSession> sessions = new ConcurrentHashMap<String, NoSession>();
   private static Set<String> online = Collections
       .newSetFromMap(new ConcurrentHashMap<String, Boolean>());
@@ -200,13 +200,13 @@ public class NoDefaultAdapter implements NoAdapter {
   }
 
   @Override
-  public Collection<NoByteSet> pollNoByteSets(PublicKey address) {
+  public List<NoByteSet> pollNoByteSets(PublicKey address) {
     if (byteSets.containsKey(address)) {
-      Collection<NoByteSet> storedByteSets = byteSets.get(address);
-      Collection<NoByteSet> result = new ArrayList<NoByteSet>();
-      for (NoByteSet byteSet : storedByteSets) {
-        result.add(byteSet);
-        storedByteSets.remove(byteSet);
+      List<NoByteSet> storedByteSets = byteSets.get(address);
+      List<NoByteSet> result = new ArrayList<NoByteSet>();
+      for (int x = 0; x < storedByteSets.size(); x++) {
+        result.add(storedByteSets.get(0));
+        storedByteSets.remove(0);
       }
       return result;
     } else {
@@ -223,7 +223,7 @@ public class NoDefaultAdapter implements NoAdapter {
   }
 
   @Override
-  public void addNoByteSets(Collection<NoByteSet> addedByteSets, PublicKey address) {
+  public void addNoByteSets(List<NoByteSet> addedByteSets, PublicKey address) {
     if (addedByteSets == null) {
       return;
     }

@@ -34,7 +34,7 @@ public final class NoSession implements Serializable {
   private NoState state;
   private final long expiry;
 
-  private Collection<NoByteSet> incoming;
+  private List<NoByteSet> incoming;
   private NoUser current;
   private String uuid;
 
@@ -173,7 +173,7 @@ public final class NoSession implements Serializable {
     return this.incoming;
   }
   
-  public Collection<NoByteSet> getIncomingSafe() {
+  public List<NoByteSet> getIncomingSafe() {
     return this.incoming;
   }
   
@@ -193,7 +193,7 @@ public final class NoSession implements Serializable {
     }
   }
   
-  public void setIncoming(Collection<NoByteSet> incoming) {
+  public void setIncoming(List<NoByteSet> incoming) {
     this.incoming = incoming;
   }
 

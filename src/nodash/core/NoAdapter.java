@@ -19,6 +19,7 @@ package nodash.core;
 
 import java.security.PublicKey;
 import java.util.Collection;
+import java.util.List;
 
 import nodash.exceptions.NoAdapterException;
 import nodash.exceptions.NoSessionExpiredException;
@@ -148,7 +149,7 @@ public interface NoAdapter {
    *         should return an empty collection, not a null object.
    * @throws NoAdapterException
    */
-  public Collection<NoByteSet> pollNoByteSets(PublicKey address) throws NoAdapterException;
+  public List<NoByteSet> pollNoByteSets(PublicKey address) throws NoAdapterException;
 
   /**
    * Adds a single NoByteSet to the addressed PublicKey address.
@@ -167,6 +168,6 @@ public interface NoAdapter {
    * @throws NoAdapterException - if the adapter is unable to add the list of NoByteSet objects to
    *         the pool.
    */
-  public void addNoByteSets(Collection<NoByteSet> byteSets, PublicKey address)
+  public void addNoByteSets(List<NoByteSet> byteSets, PublicKey address)
       throws NoAdapterException;
 }
