@@ -66,7 +66,7 @@ public final class NoSession implements Serializable {
       NoUtil.wipeChars(password);
       this.uuid = UUID.randomUUID().toString();
     } catch (IOException e) {
-      throw new NoUserNotValidException();
+      throw new NoUserNotValidException(e);
     } catch (IllegalBlockSizeException e) {
       throw new NoUserNotValidException();
     } catch (BadPaddingException e) {

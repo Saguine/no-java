@@ -17,5 +17,13 @@
 package nodash.exceptions;
 
 public class NoUserNotValidException extends NoDashException {
+  public NoUserNotValidException() {
+    super();
+  }
+  
+  public NoUserNotValidException(Exception e) {
+    super(e);
+  }
+
   private static final long serialVersionUID = -6432604940919299965L;
 }
