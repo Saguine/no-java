@@ -123,7 +123,7 @@ public final class NoSession implements Serializable {
     try {
       confirmed = NoUser.createUserFromFile(confirmData, password);
     } catch (IOException e) {
-      throw new NoUserNotValidException();
+      throw new NoUserNotValidException(e);
     } catch (IllegalBlockSizeException e) {
       throw new NoUserNotValidException();
     } catch (BadPaddingException e) {
