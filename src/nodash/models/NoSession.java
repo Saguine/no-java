@@ -129,7 +129,7 @@ public final class NoSession implements Serializable {
     } catch (BadPaddingException e) {
       throw new NoUserNotValidException();
     } catch (ClassNotFoundException e) {
-      throw new NoUserNotValidException();
+      throw new NoUserNotValidException(e);
     }
 
     NoUtil.wipeBytes(confirmData);
