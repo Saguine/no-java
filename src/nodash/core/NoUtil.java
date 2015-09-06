@@ -48,7 +48,7 @@ public final class NoUtil {
   public static final String KEYPAIR_ALGORITHM = "RSA";
   public static final String SECURERANDOM_ALGORITHM = "SHA1PRNG";
   public static final String SECURERANDOM_PROVIDER = "SUN";
-  public static final int RSA_STRENGTH = 4096;
+  public static final int RSA_STRENGTH = setupRsaStrength();
   public static final int AES_STRENGTH = 256;
   public static final byte BLANK_BYTE = 'A';
 
@@ -59,6 +59,15 @@ public final class NoUtil {
     } else {
       byte[] encoded= Base64.decodeBase64(secretEnv);
       return new SecretKeySpec(encoded, 0, encoded.length, NoUtil.CIPHER_KEY_SPEC);
+    }
+  }
+  
+  private static int setupRsaStrength() {
+    String secretEnv = System.getenv("NODASH_RSA_STRENGTH");
+    if (secretEnv == null) {
+      return 4096;
+    } else {
+      return Integer.parseInt(secretEnv); 
     }
   }
 
