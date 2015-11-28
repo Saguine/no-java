@@ -7,12 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-
 import org.apache.commons.codec.binary.Base64;
-
-import com.google.gson.Gson;
 
 import nodash.core.NoAdapter;
 import nodash.core.NoUtil;
@@ -58,20 +53,14 @@ public final class NoSession implements Serializable {
   public NoSession(byte[] data, char[] password) throws NoUserNotValidException {
     this();
     this.state = NoState.IDLE;
-    try {
-      byte[] originalData = Arrays.copyOf(data, data.length);
-      char[] originalPassword = Arrays.copyOf(password, password.length);
-      this.original =
-          NoUser.createUserFromFile(originalData, originalPassword, NoUtil.NO_USER_CLASS);
-      this.current = NoUser.createUserFromFile(data, password, NoUtil.NO_USER_CLASS);
-      NoUtil.wipeBytes(data);
-      NoUtil.wipeChars(password);
-      this.uuid = UUID.randomUUID().toString();
-    } catch (IllegalBlockSizeException e) {
-      throw new NoUserNotValidException();
-    } catch (BadPaddingException e) {
-      throw new NoUserNotValidException();
-    }
+    byte[] originalData = Arrays.copyOf(data, data.length);
+    char[] originalPassword = Arrays.copyOf(password, password.length);
+    this.original =
+        NoUser.createUserFromFile(originalData, originalPassword, NoUtil.NO_USER_CLASS);
+    this.current = NoUser.createUserFromFile(data, password, NoUtil.NO_USER_CLASS);
+    NoUtil.wipeBytes(data);
+    NoUtil.wipeChars(password);
+    this.uuid = UUID.randomUUID().toString();
   }
 
   public void check() throws NoSessionConfirmedException, NoSessionExpiredException {
@@ -118,14 +107,7 @@ public final class NoSession implements Serializable {
       throw new NoSessionNotAwaitingConfirmationException();
     }
 
-    NoUser confirmed;
-    try {
-      confirmed = NoUser.createUserFromFile(confirmData, password, NoUtil.NO_USER_CLASS);
-    } catch (IllegalBlockSizeException e) {
-      throw new NoUserNotValidException();
-    } catch (BadPaddingException e) {
-      throw new NoUserNotValidException();
-    }
+    NoUser confirmed = NoUser.createUserFromFile(confirmData, password, NoUtil.NO_USER_CLASS);
 
     NoUtil.wipeBytes(confirmData);
     NoUtil.wipeChars(password);

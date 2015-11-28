@@ -26,6 +26,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
 import nodash.core.NoUtil;
+import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoUser;
 
 import org.apache.commons.codec.binary.Base64;
@@ -82,7 +83,8 @@ public class NoUserTest {
 
   @Test
   public void testCreateUserFromFile()
-      throws IllegalBlockSizeException, BadPaddingException, ClassNotFoundException, IOException {
+ throws IllegalBlockSizeException, BadPaddingException,
+      ClassNotFoundException, IOException, NoUserNotValidException {
     NoUser user = new NoUser();
     final byte[] originalFile = user.createFile("password".toCharArray());
     byte[] file = Arrays.copyOf(originalFile, originalFile.length);
@@ -93,7 +95,7 @@ public class NoUserTest {
     try {
       user = NoUser.createUserFromFile(file, "wrongpassword".toCharArray(), NoUtil.NO_USER_CLASS);
       fail("Should have thrown an error when given wrong password.");
-    } catch (BadPaddingException e) {
+    } catch (NoUserNotValidException e) {
       // Do nothing, correct
     }
 

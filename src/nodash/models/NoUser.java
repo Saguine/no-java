@@ -23,15 +23,12 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -47,12 +44,14 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import sun.security.rsa.RSAPrivateCrtKeyImpl;
 import sun.security.rsa.RSAPublicKeyImpl;
 import nodash.core.NoUtil;
 import nodash.exceptions.NoByteSetBadDecryptionException;
 import nodash.exceptions.NoDashFatalException;
+import nodash.exceptions.NoUserNotValidException;
 
 public class NoUser implements Serializable {
   private static final long serialVersionUID = 7132405837081692211L;
@@ -123,6 +122,7 @@ public class NoUser implements Serializable {
     return encrypted;
   }
 
+  @SuppressWarnings("unchecked")
   public final byte[] createHash() {
     try {
       List<Object> items = new ArrayList<Object>();
@@ -226,14 +226,22 @@ public class NoUser implements Serializable {
   }
 
   public static NoUser createUserFromFile(byte[] data, char[] password, Class<? extends NoUser> clazz)
-      throws IllegalBlockSizeException, BadPaddingException {
-    byte[] decrypted = NoUtil.decrypt(data, password);
+      throws NoUserNotValidException {
+    byte[] decrypted;
+    try {
+      decrypted = NoUtil.decrypt(data, password);
+    } catch (IllegalBlockSizeException | BadPaddingException e) {
+      throw new NoUserNotValidException(e);
+    }
     
     Gson gson = new Gson();
     String json = NoUtil.fromBytes(decrypted);
-    NoUser noUser = gson.fromJson(json, clazz);    
-    
-    return noUser;
+    try {
+      NoUser noUser = gson.fromJson(json, clazz);   
+      return noUser; 
+    } catch (JsonSyntaxException e) {
+      throw new NoUserNotValidException(e);
+    }
   }
 
   public String createHashString() {
