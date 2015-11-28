@@ -285,25 +285,28 @@ public final class NoCore {
     byte[] oldHash = session.getOriginalHash();
     byte[] newHash = session.getNoUserSafe().createHash();
 
-    session.confirmSave(adapter, data, password);
-
     try {
-      adapter.insertHash(newHash);
-    } catch (NoAdapterException e) {
-      throw new NoDashFatalException("Could not insert confirmed hash.", e);
-    }
+      session.confirmSave(adapter, data, password);
 
-    try {
-      adapter.shredNoSession(cookie);
-    } catch (NoAdapterException e) {
-      throw new NoDashFatalException("Could not shred session.", e);
-    }
+      try {
+        adapter.insertHash(newHash);
+      } catch (NoAdapterException e) {
+        throw new NoDashFatalException("Could not insert confirmed hash.", e);
+      }
+    } finally {
+      try {
+        adapter.shredNoSession(cookie);
+      } catch (NoAdapterException e) {
+        throw new NoDashFatalException("Could not shred session.", e);
+      }
 
-    try {
-      adapter.goOffline(session.getNoUserSafe().createHash());
-    } catch (NoAdapterException e) {
-      throw new NoDashFatalException("Could not go offline.", e);
+      try {
+        adapter.goOffline(session.getNoUserSafe().createHash());
+      } catch (NoAdapterException e) {
+        throw new NoDashFatalException("Could not go offline.", e);
+      }
     }
+    
 
     if (!session.isNewUser()) {
       try {

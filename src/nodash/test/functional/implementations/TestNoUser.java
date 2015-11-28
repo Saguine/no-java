@@ -10,6 +10,7 @@ public class TestNoUser extends NoUser {
    * 
    */
   private static final long serialVersionUID = 1L;
+  
   private String username;
   private int money;
   private List<String> receipts;

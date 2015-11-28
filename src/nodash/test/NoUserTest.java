@@ -25,6 +25,7 @@ import java.util.Arrays;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
+import nodash.core.NoUtil;
 import nodash.models.NoUser;
 
 import org.apache.commons.codec.binary.Base64;
@@ -80,8 +81,8 @@ public class NoUserTest {
   }
 
   @Test
-  public void testCreateUserFromFile() throws IllegalBlockSizeException, BadPaddingException,
-      ClassNotFoundException, IOException {
+  public void testCreateUserFromFile()
+      throws IllegalBlockSizeException, BadPaddingException, ClassNotFoundException, IOException {
     NoUser user = new NoUser();
     final byte[] originalFile = user.createFile("password".toCharArray());
     byte[] file = Arrays.copyOf(originalFile, originalFile.length);
@@ -90,34 +91,34 @@ public class NoUserTest {
     user = null;
 
     try {
-      user = NoUser.createUserFromFile(file, "wrongpassword".toCharArray());
+      user = NoUser.createUserFromFile(file, "wrongpassword".toCharArray(), NoUtil.NO_USER_CLASS);
       fail("Should have thrown an error when given wrong password.");
     } catch (BadPaddingException e) {
       // Do nothing, correct
     }
 
     file = Arrays.copyOf(originalFile, originalFile.length);
-    user = NoUser.createUserFromFile(file, "password".toCharArray());
+    user = NoUser.createUserFromFile(file, "password".toCharArray(), NoUtil.NO_USER_CLASS);
     assertTrue(Arrays.equals(hash, user.createHash()));
     assertEquals(hashString, user.createHashString());
 
     file = Arrays.copyOf(originalFile, originalFile.length);
     try {
-      NoUser.createUserFromFile(file, null);
+      NoUser.createUserFromFile(file, null, NoUtil.NO_USER_CLASS);
       fail("Should have thrown a NullPointerException.");
     } catch (NullPointerException e) {
       // Do nothing, correct
     }
 
     try {
-      NoUser.createUserFromFile(null, "password".toCharArray());
+      NoUser.createUserFromFile(null, "password".toCharArray(), NoUtil.NO_USER_CLASS);
       fail("Should have thrown a IllegalArgumentException.");
     } catch (IllegalArgumentException e) {
       // Do nothing, correct
     }
 
     try {
-      NoUser.createUserFromFile(null, null);
+      NoUser.createUserFromFile(null, null, NoUtil.NO_USER_CLASS);
       fail("Should have thrown a IllegalArgumentException.");
     } catch (NullPointerException e) {
       // Do nothing, correct

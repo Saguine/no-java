@@ -17,6 +17,7 @@
 
 package nodash.core;
 
+import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -37,6 +38,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 
 import nodash.exceptions.NoDashFatalException;
+import nodash.models.NoUser;
 
 public final class NoUtil {
   public static final SecretKey SECRET_KEY = setupSecretKey();
@@ -51,24 +53,44 @@ public final class NoUtil {
   public static final int RSA_STRENGTH = setupRsaStrength();
   public static final int AES_STRENGTH = 256;
   public static final byte BLANK_BYTE = 'A';
+  public static final Class<? extends NoUser> NO_USER_CLASS = setupNoUserClass();
+
+  private static Class<? extends NoUser> setupNoUserClass() {
+    String secretEnv = System.getenv("NODASH_USER_CLASS");
+    try {
+      @SuppressWarnings("unchecked")
+      Class<? extends NoUser> clazz = (Class<? extends NoUser>) Class.forName(secretEnv);
+      return clazz;
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException("Can't find NODASH_USER_CLASS");
+    }
+  }
 
   private static SecretKey setupSecretKey() {
     String secretEnv = System.getenv("NODASH_SECRET");
     if (secretEnv == null) {
       throw new RuntimeException("Can't find NODASH_SECRET.");
     } else {
-      byte[] encoded= Base64.decodeBase64(secretEnv);
+      byte[] encoded = Base64.decodeBase64(secretEnv);
       return new SecretKeySpec(encoded, 0, encoded.length, NoUtil.CIPHER_KEY_SPEC);
     }
   }
-  
+
   private static int setupRsaStrength() {
     String secretEnv = System.getenv("NODASH_RSA_STRENGTH");
     if (secretEnv == null) {
       return 4096;
     } else {
-      return Integer.parseInt(secretEnv); 
+      return Integer.parseInt(secretEnv);
     }
+  }
+  
+  public static byte[] toBytes(String string) {
+    return string.getBytes(Charset.forName("UTF-8"));
+  }
+  
+  public static String fromBytes(byte[] bytes) {
+    return new String(bytes, Charset.forName("UTF-8"));
   }
 
   public static char[] bytesToChars(byte[] array) {
@@ -126,8 +148,8 @@ public final class NoUtil {
     }
   }
 
-  public static byte[] decrypt(byte[] data, char[] password) throws IllegalBlockSizeException,
-      BadPaddingException {
+  public static byte[] decrypt(byte[] data, char[] password)
+      throws IllegalBlockSizeException, BadPaddingException {
     byte[] passwordByte = NoUtil.getPbeKeyFromPassword(password);
     byte[] response = NoUtil.decrypt(NoUtil.decrypt(data), passwordByte);
     NoUtil.wipeBytes(passwordByte);
@@ -170,8 +192,8 @@ public final class NoUtil {
     return NoUtil.encrypt(data, SECRET_KEY.getEncoded());
   }
 
-  public static byte[] decrypt(byte[] data, byte[] key) throws IllegalBlockSizeException,
-      BadPaddingException {
+  public static byte[] decrypt(byte[] data, byte[] key)
+      throws IllegalBlockSizeException, BadPaddingException {
     Cipher cipher;
     try {
       cipher = Cipher.getInstance(NoUtil.CIPHER_TYPE);
@@ -202,7 +224,8 @@ public final class NoUtil {
       throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such algorithm).",
           e);
     } catch (NoSuchPaddingException e) {
-      throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such padding).", e);
+      throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such padding).",
+          e);
     }
     try {
       cipher.init(Cipher.ENCRYPT_MODE, publicKey);
@@ -216,8 +239,8 @@ public final class NoUtil {
     }
   }
 
-  public static byte[] decryptRsa(byte[] data, PrivateKey privateKey) throws InvalidKeyException,
-      IllegalBlockSizeException, BadPaddingException {
+  public static byte[] decryptRsa(byte[] data, PrivateKey privateKey)
+      throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
     Cipher cipher;
     try {
       cipher = Cipher.getInstance(NoUtil.CIPHER_RSA_TYPE);
@@ -225,7 +248,8 @@ public final class NoUtil {
       throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such algorithm).",
           e);
     } catch (NoSuchPaddingException e) {
-      throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such padding).", e);
+      throw new NoDashFatalException("Value for CIPHER_RSA_TYPE is not valid (no such padding).",
+          e);
     }
     cipher.init(Cipher.DECRYPT_MODE, privateKey);
     return cipher.doFinal(data);

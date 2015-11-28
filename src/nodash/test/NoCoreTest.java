@@ -19,6 +19,8 @@ package nodash.test;
 
 import static org.junit.Assert.*;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import nodash.core.NoAdapter;
@@ -84,7 +86,8 @@ public class NoCoreTest {
   public void testSaveAndConfirm() throws NoSessionExpiredException, NoSessionConfirmedException,
       NoSessionNotAwaitingConfirmationException, NoUserNotValidException,
       NoDashSessionBadUuidException, NoUserAlreadyOnlineException, NoSessionNotChangedException,
-      NoSessionAlreadyAwaitingConfirmationException, NoAdapterException {
+      NoSessionAlreadyAwaitingConfirmationException, NoAdapterException, NoSuchMethodException,
+      SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     NoAdapter adapter = new NoDefaultAdapter();
     NoCore core = new NoCore(adapter);
 
@@ -135,6 +138,11 @@ public class NoCoreTest {
     NoUser oldUserRevisited = core.getNoUser(oldUserCookie);
     byte[] currentHash = oldUserRevisited.createHash();
     oldUserRevisited.createFile("password".toCharArray());
+    
+    Method touchRandomizer = NoUser.class.getDeclaredMethod("touchRandomizer");
+    touchRandomizer.setAccessible(true);
+    touchRandomizer.invoke(adapter.getNoSession(oldUserCookie).getNoUser());
+    
     byte[] oldCreatedFile = core.save(oldUserCookie, "new-password".toCharArray());
     byte[] oldUserHash = oldUserRevisited.createHash();
     core.confirm(oldUserCookie, "new-password".toCharArray(), oldCreatedFile);

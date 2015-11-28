@@ -1,6 +1,5 @@
 package nodash.models;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +11,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
 import org.apache.commons.codec.binary.Base64;
+
+import com.google.gson.Gson;
 
 import nodash.core.NoAdapter;
 import nodash.core.NoUtil;
@@ -60,18 +61,15 @@ public final class NoSession implements Serializable {
     try {
       byte[] originalData = Arrays.copyOf(data, data.length);
       char[] originalPassword = Arrays.copyOf(password, password.length);
-      this.original = NoUser.createUserFromFile(originalData, originalPassword);
-      this.current = NoUser.createUserFromFile(data, password);
+      this.original =
+          NoUser.createUserFromFile(originalData, originalPassword, NoUtil.NO_USER_CLASS);
+      this.current = NoUser.createUserFromFile(data, password, NoUtil.NO_USER_CLASS);
       NoUtil.wipeBytes(data);
       NoUtil.wipeChars(password);
       this.uuid = UUID.randomUUID().toString();
-    } catch (IOException e) {
-      throw new NoUserNotValidException(e);
     } catch (IllegalBlockSizeException e) {
       throw new NoUserNotValidException();
     } catch (BadPaddingException e) {
-      throw new NoUserNotValidException();
-    } catch (ClassNotFoundException e) {
       throw new NoUserNotValidException();
     }
   }
@@ -103,8 +101,8 @@ public final class NoSession implements Serializable {
     return this.state;
   }
 
-  public byte[] initiateSaveAttempt(char[] password) throws NoSessionConfirmedException,
-      NoSessionExpiredException {
+  public byte[] initiateSaveAttempt(char[] password)
+      throws NoSessionConfirmedException, NoSessionExpiredException {
     touchState();
     this.state = NoState.AWAITING_CONFIRMATION;
     byte[] file = this.current.createFile(password);
@@ -112,8 +110,9 @@ public final class NoSession implements Serializable {
     return file;
   }
 
-  public void confirmSave(NoAdapter adapter, byte[] confirmData, char[] password) throws NoSessionConfirmedException,
-      NoSessionExpiredException, NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
+  public void confirmSave(NoAdapter adapter, byte[] confirmData, char[] password)
+      throws NoSessionConfirmedException, NoSessionExpiredException,
+      NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
     check();
     if (this.state != NoState.AWAITING_CONFIRMATION) {
       throw new NoSessionNotAwaitingConfirmationException();
@@ -121,30 +120,27 @@ public final class NoSession implements Serializable {
 
     NoUser confirmed;
     try {
-      confirmed = NoUser.createUserFromFile(confirmData, password);
-    } catch (IOException e) {
-      throw new NoUserNotValidException(e);
+      confirmed = NoUser.createUserFromFile(confirmData, password, NoUtil.NO_USER_CLASS);
     } catch (IllegalBlockSizeException e) {
       throw new NoUserNotValidException();
     } catch (BadPaddingException e) {
       throw new NoUserNotValidException();
-    } catch (ClassNotFoundException e) {
-      throw new NoUserNotValidException(e);
     }
 
     NoUtil.wipeBytes(confirmData);
     NoUtil.wipeChars(password);
-    if (confirmed.createHashString().equals(this.current.createHashString())) {
+    
+    if (confirmed.createHashString().equals(current.createHashString())) {
       this.state = NoState.CONFIRMED;
       /* 5.2.3: clear influences as they will not need to be re-applied */
       this.incoming = new ArrayList<NoByteSet>();
-      List<NoAction> actions = this.current.getNoActions();
+      List<NoAction> actions = current.getNoActions();
       this.incoming = null;
       /* 5.2.4: execute NoActions */
       for (NoAction action : actions) {
         /*
-         * It is assumed that actions are not long-running tasks It is also assumed that actions
-         * have the information they need without the user objects
+         * It is assumed that actions are not long-running tasks 
+         * It is also assumed that actions have the information they need without the user objects
          */
         action.execute(adapter);
         action.purge();
@@ -163,20 +159,21 @@ public final class NoSession implements Serializable {
     check();
     return this.current;
   }
-  
+
   public NoUser getNoUserSafe() {
     return this.current;
   }
-  
-  public Collection<NoByteSet> getIncoming() throws NoSessionConfirmedException, NoSessionExpiredException {
+
+  public Collection<NoByteSet> getIncoming()
+      throws NoSessionConfirmedException, NoSessionExpiredException {
     check();
     return this.incoming;
   }
-  
+
   public List<NoByteSet> getIncomingSafe() {
     return this.incoming;
   }
-  
+
   public String getUuid() {
     return this.uuid;
   }
@@ -192,12 +189,13 @@ public final class NoSession implements Serializable {
       return null;
     }
   }
-  
+
   public void setIncoming(List<NoByteSet> incoming) {
     this.incoming = incoming;
   }
 
-  public void consume(NoByteSet byteSet) throws NoByteSetBadDecryptionException, NoSessionConfirmedException, NoSessionExpiredException {
+  public void consume(NoByteSet byteSet) throws NoByteSetBadDecryptionException,
+      NoSessionConfirmedException, NoSessionExpiredException {
     check();
     this.current.consume(byteSet);
   }
@@ -205,7 +203,7 @@ public final class NoSession implements Serializable {
   public void close() {
     this.state = NoState.CLOSED;
   }
-  
+
   public boolean isNewUser() {
     return this.original == null;
   }

@@ -18,13 +18,14 @@
 
 package nodash.models;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -34,6 +35,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.crypto.BadPaddingException;
@@ -43,6 +46,9 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 
+import com.google.gson.Gson;
+
+import sun.security.rsa.RSAPrivateCrtKeyImpl;
 import sun.security.rsa.RSAPublicKeyImpl;
 import nodash.core.NoUtil;
 import nodash.exceptions.NoByteSetBadDecryptionException;
@@ -50,13 +56,17 @@ import nodash.exceptions.NoDashFatalException;
 
 public class NoUser implements Serializable {
   private static final long serialVersionUID = 7132405837081692211L;
-  private PublicKey publicKey;
-  private PrivateKey privateKey;
-  @SuppressWarnings("unused")
+  @NoHash
+  private RSAPublicKeyImpl publicKey;
+  @NoHash
+  private RSAPrivateCrtKeyImpl privateKey;
+  @NoHash
   private String randomized;
 
+  @NoHash
   private int influences;
-  @SuppressWarnings("unused")
+  
+  @NoHash
   private int actions;
 
   private List<NoAction> outgoing = new ArrayList<NoAction>();
@@ -79,11 +89,11 @@ public class NoUser implements Serializable {
     }
 
     KeyPair keyPair = kpg.generateKeyPair();
-    this.publicKey = keyPair.getPublic();
-    this.privateKey = keyPair.getPrivate();
+    this.publicKey = (RSAPublicKeyImpl) keyPair.getPublic();
+    this.privateKey = (RSAPrivateCrtKeyImpl) keyPair.getPrivate();
     this.influences = 0;
     this.actions = 0;
-    this.touchRandomizer();
+    touchRandomizer();
   }
 
   private void touchRandomizer() {
@@ -93,45 +103,73 @@ public class NoUser implements Serializable {
     } catch (NoSuchAlgorithmException e) {
       throw new NoDashFatalException("Value for SECURERANDOM_ALGORITHM not valid.", e);
     }
-    this.randomized = new String(randomBytes);
+    randomized = new String(randomBytes);
   }
 
   public final byte[] createFile(char[] password) {
-    List<NoAction> temp = this.outgoing;
-    try {
-      this.touchRandomizer();
-      this.outgoing = new ArrayList<NoAction>();
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      ObjectOutputStream oos = new ObjectOutputStream(baos);
-      oos.writeObject(this);
-      byte[] encrypted = NoUtil.encrypt(baos.toByteArray(), password);
-      oos.close();
-      baos.close();
-      return encrypted;
-    } catch (IOException e) {
-      throw new NoDashFatalException(
-          "IO Exception encountered while generating encrypted user file byte stream.", e);
-    } finally {
-      this.outgoing = temp;
-    }
+    List<NoAction> tempActions = outgoing;
+    int tempActionCount = actions;
+    
+    touchRandomizer();
+    outgoing = new ArrayList<NoAction>();
+    actions = 0;
+
+    Gson gson = new Gson();
+    byte[] json = NoUtil.toBytes(gson.toJson(this));
+    byte[] encrypted = NoUtil.encrypt(json, password);
+
+    actions = tempActionCount;
+    outgoing = tempActions;
+    return encrypted;
   }
 
   public final byte[] createHash() {
-    List<NoAction> temp = this.outgoing;
     try {
-      this.outgoing = new ArrayList<NoAction>();
+      List<Object> items = new ArrayList<Object>();
+      Comparator<Field> fieldComp = new Comparator<Field>() {
+        @Override
+        public int compare(Field o1, Field o2) {
+          return o1.getName().compareTo(o2.getName());
+        }
+      };
+      
+      Class<? extends NoUser> userClass = getClass();
+      
+      while (userClass != null) {
+        Field[] noHashFields = userClass.getDeclaredFields();
+        
+        Arrays.sort(noHashFields, fieldComp);
+        
+        for (Field field : noHashFields) {
+          if (field.isAnnotationPresent(NoHash.class)) {
+            field.setAccessible(true);
+            items.add(field.get(this));
+          }
+        }
+        
+        if (userClass == NoUser.class) {
+          userClass = null;
+        } else {
+          userClass = (Class<? extends NoUser>) userClass.getSuperclass();
+        }
+      }
+      
+      
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       ObjectOutputStream oos = new ObjectOutputStream(baos);
-      oos.writeObject(this);
-      byte[] userBytes = baos.toByteArray();
-      return NoUtil.getHashFromByteArray(userBytes);
+      oos.writeObject(items);
+      byte[] itemBytes = baos.toByteArray();
+      
+      return NoUtil.getHashFromByteArray(itemBytes);
     } catch (IOException e) {
       throw new NoDashFatalException("IO Exception encountered while generating user hash.", e);
-    } finally {
-      this.outgoing = temp;
+    } catch (IllegalArgumentException e) {
+      throw new NoDashFatalException("IllegalArgument Exception encountered while generating user hash.", e);
+    } catch (IllegalAccessException e) {
+      throw new NoDashFatalException("IllegalAccess Exception encountered while generating user hash.", e);
     }
   }
-  
+
   public final void consume(NoByteSet byteSet) throws NoByteSetBadDecryptionException {
     try {
       SecretKey secretKey = new SecretKeySpec(decryptRsa(byteSet.key), NoUtil.CIPHER_KEY_SPEC);
@@ -182,38 +220,38 @@ public class NoUser implements Serializable {
     return influences;
   }
 
-  private final byte[] decryptRsa(byte[] data) throws InvalidKeyException,
-      IllegalBlockSizeException, BadPaddingException {
+  private final byte[] decryptRsa(byte[] data)
+      throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
     return NoUtil.decryptRsa(data, this.privateKey);
   }
 
-  public static NoUser createUserFromFile(byte[] data, char[] password)
-      throws IllegalBlockSizeException, BadPaddingException, IOException, ClassNotFoundException {
+  public static NoUser createUserFromFile(byte[] data, char[] password, Class<? extends NoUser> clazz)
+      throws IllegalBlockSizeException, BadPaddingException {
     byte[] decrypted = NoUtil.decrypt(data, password);
-    ByteArrayInputStream bais = new ByteArrayInputStream(decrypted);
-    ObjectInputStream ois = new ObjectInputStream(bais);
-    NoUser noUser = (NoUser) ois.readObject();
-    ois.close();
-    bais.close();
+    
+    Gson gson = new Gson();
+    String json = NoUtil.fromBytes(decrypted);
+    NoUser noUser = gson.fromJson(json, clazz);    
+    
     return noUser;
   }
 
   public String createHashString() {
-    return Base64.encodeBase64URLSafeString(this.createHash());
+    return Base64.encodeBase64URLSafeString(createHash());
   }
 
   @Override
-  public boolean equals(Object otherUser) {
+  public final boolean equals(Object otherUser) {
     if (otherUser == null) {
       return false;
     }
-    
+
     if (!otherUser.getClass().equals(getClass())) {
       return false;
     }
-    
+
     return this.privateKey.equals(((NoUser) otherUser).privateKey);
   }
-  
-  
+
+
 }
