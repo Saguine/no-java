@@ -64,11 +64,15 @@ public final class NoSession implements Serializable {
   }
 
   public void check() throws NoSessionConfirmedException, NoSessionExpiredException {
-    if (this.state == NoState.CONFIRMED) {
+    if (state == NoState.CONFIRMED) {
       throw new NoSessionConfirmedException();
-    } else if (this.state == NoState.CLOSED || System.currentTimeMillis() > this.expiry) {
-      this.state = NoState.CLOSED;
+    } else if (state == NoState.CLOSED || System.currentTimeMillis() > expiry) {
+      state = NoState.CLOSED;
       throw new NoSessionExpiredException();
+    } else if (state == NoState.IDLE 
+        && (current.getNoActions().size() > 0 
+            || current.createHashString().equals(original.createHashString()))) {
+      state = NoState.MODIFIED;
     }
   }
 
@@ -139,7 +143,7 @@ public final class NoSession implements Serializable {
 
   public NoUser getNoUser() throws NoSessionConfirmedException, NoSessionExpiredException {
     check();
-    return this.current;
+    return current;
   }
 
   public NoUser getNoUserSafe() {
