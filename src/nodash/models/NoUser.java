@@ -245,12 +245,12 @@ public class NoUser implements Serializable {
     if (otherUser == null) {
       return false;
     }
-
-    if (!otherUser.getClass().equals(getClass())) {
+    
+    if (!NoUser.class.isAssignableFrom(otherUser.getClass())) {
       return false;
     }
 
-    return this.privateKey.equals(((NoUser) otherUser).privateKey);
+    return this.privateKey.getModulus().equals(((NoUser) otherUser).privateKey.getModulus());
   }
 
 
