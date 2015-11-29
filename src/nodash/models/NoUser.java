@@ -41,8 +41,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.apache.commons.codec.binary.Base64;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -53,7 +51,7 @@ import nodash.exceptions.NoByteSetBadDecryptionException;
 import nodash.exceptions.NoDashFatalException;
 import nodash.exceptions.NoUserNotValidException;
 
-public class NoUser implements Serializable {
+public abstract class NoUser implements Serializable {
   private static final long serialVersionUID = 7132405837081692211L;
   @NoHash
   private RSAPublicKeyImpl publicKey;
@@ -244,8 +242,8 @@ public class NoUser implements Serializable {
     }
   }
 
-  public String createHashString() {
-    return Base64.encodeBase64URLSafeString(createHash());
+  public final String createHashString() {
+    return NoUtil.fromBytes(createHash());
   }
 
   @Override
@@ -258,8 +256,7 @@ public class NoUser implements Serializable {
       return false;
     }
 
-    return this.privateKey.getModulus().equals(((NoUser) otherUser).privateKey.getModulus());
+    return privateKey.getModulus().equals(((NoUser) otherUser).privateKey.getModulus());
   }
-
 
 }

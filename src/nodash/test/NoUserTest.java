@@ -28,15 +28,15 @@ import javax.crypto.IllegalBlockSizeException;
 import nodash.core.NoUtil;
 import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoUser;
+import nodash.test.functional.implementations.TestNoUser;
 
-import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 
 public class NoUserTest {
 
   @Test
   public void testNoUser() {
-    NoUser user = new NoUser();
+    NoUser user = new TestNoUser("Test");
 
     assertNotNull(user.getNoActions());
     assertEquals(user.getNoActions().size(), 0);
@@ -48,7 +48,7 @@ public class NoUserTest {
 
   @Test
   public void testCreateFile() {
-    NoUser user = new NoUser();
+    NoUser user = new TestNoUser("Test");
     byte[] file = user.createFile("password".toCharArray());
 
     assertNotNull(file);
@@ -61,7 +61,7 @@ public class NoUserTest {
 
   @Test
   public void testCreateHash() {
-    NoUser user = new NoUser();
+    NoUser user = new TestNoUser("Test");
     byte[] hash = user.createHash();
 
     assertNotNull(hash);
@@ -74,18 +74,18 @@ public class NoUserTest {
 
   @Test
   public void testCreateHashString() {
-    NoUser user = new NoUser();
+    NoUser user = new TestNoUser("Test");
     byte[] hash = user.createHash();
     String hashString = user.createHashString();
 
-    assertEquals(Base64.encodeBase64URLSafeString(hash), hashString);
+    assertEquals(NoUtil.fromBytes(hash), hashString);
   }
 
   @Test
   public void testCreateUserFromFile()
  throws IllegalBlockSizeException, BadPaddingException,
       ClassNotFoundException, IOException, NoUserNotValidException {
-    NoUser user = new NoUser();
+    NoUser user = new TestNoUser("Test");
     final byte[] originalFile = user.createFile("password".toCharArray());
     byte[] file = Arrays.copyOf(originalFile, originalFile.length);
     byte[] hash = user.createHash();

@@ -27,6 +27,7 @@ import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoSession;
 import nodash.models.NoSession.NoState;
 import nodash.models.NoUser;
+import nodash.test.functional.implementations.TestNoUser;
 
 import org.junit.Test;
 
@@ -34,7 +35,7 @@ public class NoSessionTest {
 
   @Test
   public void testNoSessionNoUser() throws NoSessionConfirmedException, NoSessionExpiredException {
-    NoUser user = new NoUser();
+    NoUser user = new TestNoUser("Test");
     NoSession session = new NoSession(user);
     assertNotNull(session.getNoUser());
     assertNotNull(session.getUuid());
@@ -54,7 +55,7 @@ public class NoSessionTest {
   @Test
   public void testNoSessionByteArrayCharArray() throws NoUserNotValidException,
       NoSessionExpiredException, NoSessionConfirmedException {
-    NoUser user = new NoUser();
+    NoUser user = new TestNoUser("Test");
     final byte[] userFile1 = user.createFile("password".toCharArray());
     byte[] userFile2 = Arrays.copyOf(userFile1, userFile1.length);
     char[] userPassword = "password".toCharArray();

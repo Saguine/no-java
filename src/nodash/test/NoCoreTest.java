@@ -38,6 +38,7 @@ import nodash.exceptions.NoUserAlreadyOnlineException;
 import nodash.exceptions.NoUserNotValidException;
 import nodash.models.NoRegister;
 import nodash.models.NoUser;
+import nodash.test.functional.implementations.TestNoUser;
 import nodash.models.NoSession.NoState;
 
 import org.junit.Test;
@@ -48,18 +49,18 @@ public class NoCoreTest {
   public void testRegister() {
     NoCore core = new NoCore(new NoDefaultAdapter());
 
-    NoUser user1 = new NoUser();
+    NoUser user1 = new TestNoUser("Test");
     NoRegister registration1 = core.register(user1, "password".toCharArray());
     assertNotNull(registration1.cookie);
     assertNotNull(registration1.data);
 
-    NoUser user2 = new NoUser();
+    NoUser user2 = new TestNoUser("Test");
     NoRegister registration2 = core.register(user2, "password".toCharArray());
 
     assertFalse(Arrays.equals(registration1.cookie, registration2.cookie));
     assertFalse(Arrays.equals(registration1.data, registration2.data));
 
-    NoUser user3 = new NoUser();
+    NoUser user3 = new TestNoUser("Test");
     try {
       core.register(null, "password".toCharArray());
       fail("Did not throw NullPointerException.");
@@ -91,14 +92,14 @@ public class NoCoreTest {
     NoAdapter adapter = new NoDefaultAdapter();
     NoCore core = new NoCore(adapter);
 
-    NoUser newUser = new NoUser();
+    NoUser newUser = new TestNoUser("Test");
     NoRegister registration = core.register(newUser, "password".toCharArray());
     byte[] newUserFile = Arrays.copyOf(registration.data, registration.data.length);
     core.confirm(registration.cookie, "password".toCharArray(), newUserFile);
     byte[] newUserHash = newUser.createHash();
     adapter.checkHash(newUserHash);
 
-    NoUser newUserBadPass = new NoUser();
+    NoUser newUserBadPass = new TestNoUser("Test");
     registration = core.register(newUserBadPass, "password".toCharArray());
     byte[] newUserBadPassFile = Arrays.copyOf(registration.data, registration.data.length);
     try {
@@ -125,7 +126,7 @@ public class NoCoreTest {
       // Do nothing, true
     }
 
-    NoUser oldUser = new NoUser();
+    NoUser oldUser = new TestNoUser("Test");
     registration = core.register(oldUser, "password".toCharArray());
     byte[] oldUserFile = Arrays.copyOf(registration.data, registration.data.length);
     core.confirm(registration.cookie, "password".toCharArray(), oldUserFile);
@@ -162,7 +163,7 @@ public class NoCoreTest {
       NoSessionNotAwaitingConfirmationException, NoUserNotValidException,
       NoUserAlreadyOnlineException {
     NoCore core = new NoCore(new NoDefaultAdapter());
-    NoUser user = new NoUser();
+    NoUser user = new TestNoUser("Test");
     NoRegister registration = core.register(user, "password".toCharArray());
     byte[] file = Arrays.copyOf(registration.data, registration.data.length);
     core.confirm(registration.cookie, "password".toCharArray(), file);
@@ -188,7 +189,7 @@ public class NoCoreTest {
       NoSessionNotAwaitingConfirmationException, NoUserNotValidException,
       NoUserAlreadyOnlineException, NoSessionNotChangedException, NoSessionAlreadyAwaitingConfirmationException {
     NoCore core = new NoCore(new NoDefaultAdapter());
-    NoUser user = new NoUser();
+    NoUser user = new TestNoUser("Test");
     NoRegister registration = core.register(user, "password".toCharArray());
     assertEquals(core.getSessionState(registration.cookie), NoState.AWAITING_CONFIRMATION);
     byte[] file = Arrays.copyOf(registration.data, registration.data.length);
@@ -217,7 +218,7 @@ public class NoCoreTest {
   public void testShred() throws NoAdapterException, NoSessionConfirmedException, NoSessionExpiredException {
     NoAdapter adapter = new NoDefaultAdapter();
     NoCore core = new NoCore(adapter);
-    NoUser user = new NoUser();
+    NoUser user = new TestNoUser("Test");
     NoRegister registration = core.register(user, "password".toCharArray());
     assertTrue(adapter.isOnline(user.createHash()));
     assertEquals(core.getSessionState(registration.cookie), NoState.AWAITING_CONFIRMATION);
