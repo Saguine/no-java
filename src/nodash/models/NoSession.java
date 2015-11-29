@@ -78,27 +78,27 @@ public final class NoSession implements Serializable {
 
   public NoState touchState() throws NoSessionConfirmedException, NoSessionExpiredException {
     check();
-    if (this.original == null) {
-      if (this.state != NoState.AWAITING_CONFIRMATION) {
-        this.state = NoState.MODIFIED;
+    if (original == null) {
+      if (state != NoState.AWAITING_CONFIRMATION) {
+        state = NoState.MODIFIED;
       }
     } else {
       String originalHash = this.original.createHashString();
       String currentHash = this.current.createHashString();
       if (originalHash.equals(currentHash)) {
-        this.state = NoState.IDLE;
+        state = NoState.IDLE;
       } else if (this.state != NoState.AWAITING_CONFIRMATION) {
-        this.state = NoState.MODIFIED;
+        state = NoState.MODIFIED;
       }
     }
-    return this.state;
+    return state;
   }
 
   public byte[] initiateSaveAttempt(char[] password)
       throws NoSessionConfirmedException, NoSessionExpiredException {
     touchState();
     this.state = NoState.AWAITING_CONFIRMATION;
-    byte[] file = this.current.createFile(password);
+    byte[] file = current.createFile(password);
     NoUtil.wipeChars(password);
     return file;
   }
