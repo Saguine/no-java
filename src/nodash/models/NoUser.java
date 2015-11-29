@@ -105,8 +105,7 @@ public abstract class NoUser implements Serializable {
 
   public final byte[] createFile(char[] password) {
     List<NoAction> tempActions = outgoing;
-    int tempActionCount = actions;
-    
+
     touchRandomizer();
     outgoing = new ArrayList<NoAction>();
     actions = 0;
@@ -115,7 +114,6 @@ public abstract class NoUser implements Serializable {
     byte[] json = NoUtil.toBytes(gson.toJson(this));
     byte[] encrypted = NoUtil.encrypt(json, password);
 
-    actions = tempActionCount;
     outgoing = tempActions;
     return encrypted;
   }
