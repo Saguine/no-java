@@ -62,7 +62,7 @@ public final class NoUtil {
       Class<? extends NoUser> clazz = (Class<? extends NoUser>) Class.forName(secretEnv);
       return clazz;
     } catch (ClassNotFoundException e) {
-      throw new RuntimeException("Can't find NODASH_USER_CLASS");
+      throw new RuntimeException("Can't find NODASH_USER_CLASS", e);
     }
   }
 
