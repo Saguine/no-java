@@ -3,6 +3,7 @@ package nodash.test.functional.implementations;
 import java.util.ArrayList;
 import java.util.List;
 
+import nodash.models.NoHash;
 import nodash.models.NoUser;
 
 public class TestNoUser extends NoUser {
@@ -11,8 +12,13 @@ public class TestNoUser extends NoUser {
    */
   private static final long serialVersionUID = 1L;
   
+  @NoHash
   private String username;
+  
+  @NoHash
   private int money;
+  
+  @NoHash
   private List<String> receipts;
   
   public TestNoUser(String username) {
