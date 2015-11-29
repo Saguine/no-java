@@ -50,14 +50,15 @@ public final class NoSession implements Serializable {
     this.current = newUser;
   }
 
-  public NoSession(byte[] data, char[] password) throws NoUserNotValidException {
+  public NoSession(byte[] data, char[] password, Class<? extends NoUser> userClass) 
+      throws NoUserNotValidException {
     this();
     this.state = NoState.IDLE;
     byte[] originalData = Arrays.copyOf(data, data.length);
     char[] originalPassword = Arrays.copyOf(password, password.length);
     this.original =
-        NoUser.createUserFromFile(originalData, originalPassword, NoUtil.NO_USER_CLASS);
-    this.current = NoUser.createUserFromFile(data, password, NoUtil.NO_USER_CLASS);
+        NoUser.createUserFromFile(originalData, originalPassword, userClass);
+    this.current = NoUser.createUserFromFile(data, password, userClass);
     NoUtil.wipeBytes(data);
     NoUtil.wipeChars(password);
     this.uuid = UUID.randomUUID().toString();
@@ -103,7 +104,7 @@ public final class NoSession implements Serializable {
     return file;
   }
 
-  public void confirmSave(NoAdapter adapter, byte[] confirmData, char[] password)
+  public void confirmSave(NoAdapter adapter, byte[] confirmData, char[] password, Class<? extends NoUser> userClass)
       throws NoSessionConfirmedException, NoSessionExpiredException,
       NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
     check();
@@ -111,7 +112,7 @@ public final class NoSession implements Serializable {
       throw new NoSessionNotAwaitingConfirmationException();
     }
 
-    NoUser confirmed = NoUser.createUserFromFile(confirmData, password, NoUtil.NO_USER_CLASS);
+    NoUser confirmed = NoUser.createUserFromFile(confirmData, password, userClass);
 
     NoUtil.wipeBytes(confirmData);
     NoUtil.wipeChars(password);

@@ -47,7 +47,7 @@ public class NoCoreTest {
 
   @Test
   public void testRegister() {
-    NoCore core = new NoCore(new NoDefaultAdapter());
+    NoCore core = new NoCore(new NoDefaultAdapter(), TestNoUser.class);
 
     NoUser user1 = new TestNoUser("Test");
     NoRegister registration1 = core.register(user1, "password".toCharArray());
@@ -90,7 +90,7 @@ public class NoCoreTest {
       NoSessionAlreadyAwaitingConfirmationException, NoAdapterException, NoSuchMethodException,
       SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     NoAdapter adapter = new NoDefaultAdapter();
-    NoCore core = new NoCore(adapter);
+    NoCore core = new NoCore(adapter, TestNoUser.class);
 
     NoUser newUser = new TestNoUser("Test");
     NoRegister registration = core.register(newUser, "password".toCharArray());
@@ -162,7 +162,7 @@ public class NoCoreTest {
   public void testGetUser() throws NoSessionExpiredException, NoSessionConfirmedException,
       NoSessionNotAwaitingConfirmationException, NoUserNotValidException,
       NoUserAlreadyOnlineException {
-    NoCore core = new NoCore(new NoDefaultAdapter());
+    NoCore core = new NoCore(new NoDefaultAdapter(), TestNoUser.class);
     NoUser user = new TestNoUser("Test");
     NoRegister registration = core.register(user, "password".toCharArray());
     byte[] file = Arrays.copyOf(registration.data, registration.data.length);
@@ -188,7 +188,7 @@ public class NoCoreTest {
   public void testGetSessionState() throws NoSessionExpiredException, NoSessionConfirmedException,
       NoSessionNotAwaitingConfirmationException, NoUserNotValidException,
       NoUserAlreadyOnlineException, NoSessionNotChangedException, NoSessionAlreadyAwaitingConfirmationException {
-    NoCore core = new NoCore(new NoDefaultAdapter());
+    NoCore core = new NoCore(new NoDefaultAdapter(), TestNoUser.class);
     NoUser user = new TestNoUser("Test");
     NoRegister registration = core.register(user, "password".toCharArray());
     assertEquals(core.getSessionState(registration.cookie), NoState.AWAITING_CONFIRMATION);
@@ -217,7 +217,7 @@ public class NoCoreTest {
   @Test
   public void testShred() throws NoAdapterException, NoSessionConfirmedException, NoSessionExpiredException {
     NoAdapter adapter = new NoDefaultAdapter();
-    NoCore core = new NoCore(adapter);
+    NoCore core = new NoCore(adapter, TestNoUser.class);
     NoUser user = new TestNoUser("Test");
     NoRegister registration = core.register(user, "password".toCharArray());
     assertTrue(adapter.isOnline(user.createHash()));

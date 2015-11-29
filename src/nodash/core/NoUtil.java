@@ -38,7 +38,6 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 
 import nodash.exceptions.NoDashFatalException;
-import nodash.models.NoUser;
 
 public final class NoUtil {
   public static final SecretKey SECRET_KEY = setupSecretKey();
@@ -53,19 +52,7 @@ public final class NoUtil {
   public static final int RSA_STRENGTH = setupRsaStrength();
   public static final int AES_STRENGTH = 256;
   public static final byte BLANK_BYTE = 'A';
-  public static final Class<? extends NoUser> NO_USER_CLASS = setupNoUserClass();
-
-  private static Class<? extends NoUser> setupNoUserClass() {
-    String secretEnv = System.getenv("NODASH_USER_CLASS");
-    try {
-      @SuppressWarnings("unchecked")
-      Class<? extends NoUser> clazz = (Class<? extends NoUser>) Class.forName(secretEnv);
-      return clazz;
-    } catch (ClassNotFoundException e) {
-      throw new RuntimeException("Can't find NODASH_USER_CLASS", e);
-    }
-  }
-
+  
   private static SecretKey setupSecretKey() {
     String secretEnv = System.getenv("NODASH_SECRET");
     if (secretEnv == null) {

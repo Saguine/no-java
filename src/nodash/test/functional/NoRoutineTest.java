@@ -36,7 +36,7 @@ public class NoRoutineTest {
   private byte[] registerAndConfirm(TestNoUser user, String password)
       throws NoSessionExpiredException, NoSessionConfirmedException,
       NoSessionNotAwaitingConfirmationException, NoUserNotValidException {
-    NoCore core = new NoCore(new NoDefaultAdapter());
+    NoCore core = new NoCore(new NoDefaultAdapter(), TestNoUser.class);
     NoRegister registration = core.register(user, password.toCharArray());
     core.confirm(getCopy(registration.cookie), password.toCharArray(), getCopy(registration.data));
     return getCopy(registration.data);
@@ -50,7 +50,7 @@ public class NoRoutineTest {
     final byte[] userFile = registerAndConfirm(new TestNoUser("username"), "password");
 
     NoAdapter adapter = new NoDefaultAdapter();
-    NoCore core = new NoCore(adapter);
+    NoCore core = new NoCore(adapter, TestNoUser.class);
 
     byte[] cookie = core.login(getCopy(userFile), "password".toCharArray());
     TestNoUser userRegistered = (TestNoUser) core.getNoUser(Arrays.copyOf(cookie, cookie.length));
@@ -84,7 +84,7 @@ public class NoRoutineTest {
       NoUserAlreadyOnlineException, NoSessionNotChangedException,
       NoSessionAlreadyAwaitingConfirmationException { // testing TestJustTouchStaticField
     byte[] userFile = registerAndConfirm(new TestNoUser("username"), "password");
-    NoCore core = new NoCore(new NoDefaultAdapter());
+    NoCore core = new NoCore(new NoDefaultAdapter(), TestNoUser.class);
 
     int touchCount = TestJustTouchStaticField.touchMe;
 
@@ -118,7 +118,7 @@ public class NoRoutineTest {
       NoUserNotValidException, NoUserAlreadyOnlineException, NoSessionNotChangedException,
       NoSessionAlreadyAwaitingConfirmationException { // testing TestRequestFunds
     byte[] requesterFile = registerAndConfirm(new TestNoUser("requester"), "password");
-    NoCore core = new NoCore(new NoDefaultAdapter());
+    NoCore core = new NoCore(new NoDefaultAdapter(), TestNoUser.class);
 
     byte[] requesterCookie = core.login(getCopy(requesterFile), "password".toCharArray());
     TestNoUser requester = (TestNoUser) core.getNoUser(getCopy(requesterCookie));
@@ -137,7 +137,7 @@ public class NoRoutineTest {
       NoUserNotValidException, NoUserAlreadyOnlineException, NoSessionNotChangedException,
       NoSessionAlreadyAwaitingConfirmationException { // testing TestRequestFunds
     byte[] requesterFile = registerAndConfirm(new TestNoUser("requester"), "password");
-    NoCore core = new NoCore(new NoDefaultAdapter());
+    NoCore core = new NoCore(new NoDefaultAdapter(), TestNoUser.class);
 
     byte[] requesterCookie = core.login(getCopy(requesterFile), "password".toCharArray());
     TestNoUser requester = (TestNoUser) core.getNoUser(getCopy(requesterCookie));
@@ -161,7 +161,7 @@ public class NoRoutineTest {
       NoSessionAlreadyAwaitingConfirmationException { // testing TestSendFunds
     byte[] fundSenderFile = registerAndConfirm(new TestNoUser("fund-sender"), "password1");
     byte[] fundGetterFile = registerAndConfirm(new TestNoUser("fund-getter"), "password2");
-    NoCore core = new NoCore(new NoDefaultAdapter());
+    NoCore core = new NoCore(new NoDefaultAdapter(), TestNoUser.class);
 
     byte[] senderCookie = core.login(getCopy(fundSenderFile), "password1".toCharArray());
     TestNoUser sender = (TestNoUser) core.getNoUser(senderCookie);
@@ -211,7 +211,7 @@ public class NoRoutineTest {
       NoSessionAlreadyAwaitingConfirmationException { // testing TestSendFundsReceipted
     byte[] fundSenderFile = registerAndConfirm(new TestNoUser("fund-sender"), "password1");
     byte[] fundGetterFile = registerAndConfirm(new TestNoUser("fund-getter"), "password2");
-    NoCore core = new NoCore(new NoDefaultAdapter());
+    NoCore core = new NoCore(new NoDefaultAdapter(), TestNoUser.class);
 
     byte[] senderCookie = core.login(getCopy(fundSenderFile), "password1".toCharArray());
     TestNoUser sender = (TestNoUser) core.getNoUser(senderCookie);
@@ -268,7 +268,7 @@ public class NoRoutineTest {
       NoUserNotValidException, NoUserAlreadyOnlineException { // testing TestSendFundsSourced
     byte[] fundSenderFile = registerAndConfirm(new TestNoUser("fund-sender"), "password1");
     byte[] fundGetterFile = registerAndConfirm(new TestNoUser("fund-getter"), "password2");
-    NoCore core = new NoCore(new NoDefaultAdapter());
+    NoCore core = new NoCore(new NoDefaultAdapter(), TestNoUser.class);
 
     byte[] senderCookie = core.login(getCopy(fundSenderFile), "password1".toCharArray());
     TestNoUser sender = (TestNoUser) core.getNoUser(senderCookie);

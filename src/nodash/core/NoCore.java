@@ -43,6 +43,7 @@ import nodash.models.NoSession.NoState;
  */
 public final class NoCore {
   private NoAdapter adapter;
+  private Class<? extends NoUser> userClass;
 
   /**
    * Instantiates an instance of the NoCore, using the given adapter to interact with saved hashes,
@@ -50,8 +51,9 @@ public final class NoCore {
    * 
    * @param adapter an object implementing the NoAdapter interface.
    */
-  public NoCore(NoAdapter adapter) {
+  public NoCore(NoAdapter adapter, Class<? extends NoUser> userClass) {
     this.adapter = adapter;
+    this.userClass = userClass;
   }
 
   /**
@@ -92,7 +94,7 @@ public final class NoCore {
    */
   public byte[] login(byte[] data, char[] password) throws NoUserNotValidException,
       NoUserAlreadyOnlineException {
-    NoSession session = new NoSession(data, password);
+    NoSession session = new NoSession(data, password, userClass);
 
     /* 1. Check that user is a valid user of the system based on their hash. */
     try {
@@ -286,7 +288,7 @@ public final class NoCore {
     byte[] newHash = session.getNoUserSafe().createHash();
 
     try {
-      session.confirmSave(adapter, data, password);
+      session.confirmSave(adapter, data, password, userClass);
 
       try {
         adapter.insertHash(newHash);

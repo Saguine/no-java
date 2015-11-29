@@ -44,7 +44,7 @@ public class NoSessionTest {
     assertNull(session.getOriginalHash());
     assertEquals(session.getNoUser(), user);
     assertEquals(session.getNoState(), NoState.MODIFIED);
-    
+
     try {
       new NoSession(null);
       fail("Did not throw NullPointerException when given a null user.");
@@ -52,14 +52,15 @@ public class NoSessionTest {
       // Do nothing, correct
     }
   }
+
   @Test
-  public void testNoSessionByteArrayCharArray() throws NoUserNotValidException,
-      NoSessionExpiredException, NoSessionConfirmedException {
+  public void testNoSessionByteArrayCharArray()
+      throws NoUserNotValidException, NoSessionExpiredException, NoSessionConfirmedException {
     NoUser user = new TestNoUser("Test");
     final byte[] userFile1 = user.createFile("password".toCharArray());
     byte[] userFile2 = Arrays.copyOf(userFile1, userFile1.length);
     char[] userPassword = "password".toCharArray();
-    NoSession session = new NoSession(userFile2, userPassword);
+    NoSession session = new NoSession(userFile2, userPassword, TestNoUser.class);
     assertFalse(Arrays.equals(userFile1, userFile2));
     assertFalse(Arrays.equals("password".toCharArray(), userPassword));
     assertNotNull(session.getNoUser());
@@ -68,18 +69,19 @@ public class NoSessionTest {
     assertNull(session.getIncoming());
     assertEquals(session.getNoUser(), user);
     assertEquals(session.getNoState(), NoState.IDLE);
-    
+
     byte[] badUserFile = Arrays.copyOf(userFile1, userFile1.length);
     badUserFile[0] = (byte) (badUserFile[0] == 'A' ? 'B' : 'A');
     try {
-      new NoSession(badUserFile, "password".toCharArray());
+      new NoSession(badUserFile, "password".toCharArray(), TestNoUser.class);
       fail("Did not throw NoUserNotValidException when given bad file.");
     } catch (NoUserNotValidException e) {
       // Do nothing, correct
     }
-    
+
     try {
-      new NoSession(Arrays.copyOf(userFile2, userFile2.length), "badpassword".toCharArray());
+      new NoSession(Arrays.copyOf(userFile2, userFile2.length), "badpassword".toCharArray(),
+          TestNoUser.class);
       fail("Did not throw NoUserNotValidException when given bad password.");
     } catch (NoUserNotValidException e) {
       // Do nothing, correct

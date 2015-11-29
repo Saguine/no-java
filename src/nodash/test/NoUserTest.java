@@ -93,34 +93,34 @@ public class NoUserTest {
     user = null;
 
     try {
-      user = NoUser.createUserFromFile(file, "wrongpassword".toCharArray(), NoUtil.NO_USER_CLASS);
+      user = NoUser.createUserFromFile(file, "wrongpassword".toCharArray(), TestNoUser.class);
       fail("Should have thrown an error when given wrong password.");
     } catch (NoUserNotValidException e) {
       // Do nothing, correct
     }
 
     file = Arrays.copyOf(originalFile, originalFile.length);
-    user = NoUser.createUserFromFile(file, "password".toCharArray(), NoUtil.NO_USER_CLASS);
+    user = NoUser.createUserFromFile(file, "password".toCharArray(), TestNoUser.class);
     assertTrue(Arrays.equals(hash, user.createHash()));
     assertEquals(hashString, user.createHashString());
 
     file = Arrays.copyOf(originalFile, originalFile.length);
     try {
-      NoUser.createUserFromFile(file, null, NoUtil.NO_USER_CLASS);
+      NoUser.createUserFromFile(file, null, TestNoUser.class);
       fail("Should have thrown a NullPointerException.");
     } catch (NullPointerException e) {
       // Do nothing, correct
     }
 
     try {
-      NoUser.createUserFromFile(null, "password".toCharArray(), NoUtil.NO_USER_CLASS);
+      NoUser.createUserFromFile(null, "password".toCharArray(), TestNoUser.class);
       fail("Should have thrown a IllegalArgumentException.");
     } catch (IllegalArgumentException e) {
       // Do nothing, correct
     }
 
     try {
-      NoUser.createUserFromFile(null, null, NoUtil.NO_USER_CLASS);
+      NoUser.createUserFromFile(null, null, TestNoUser.class);
       fail("Should have thrown a IllegalArgumentException.");
     } catch (NullPointerException e) {
       // Do nothing, correct
