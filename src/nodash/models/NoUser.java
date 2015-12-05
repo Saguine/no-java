@@ -59,7 +59,7 @@ public abstract class NoUser implements Serializable {
 
   @NoHash
   private int influences;
-  
+
   @NoHash
   private int actions;
 
@@ -83,10 +83,10 @@ public abstract class NoUser implements Serializable {
     }
 
     KeyPair keyPair = kpg.generateKeyPair();
-    this.publicKey = (RSAPublicKeyImpl) keyPair.getPublic();
-    this.privateKey = (RSAPrivateCrtKeyImpl) keyPair.getPrivate();
-    this.influences = 0;
-    this.actions = 0;
+    publicKey = (RSAPublicKeyImpl) keyPair.getPublic();
+    privateKey = (RSAPrivateCrtKeyImpl) keyPair.getPrivate();
+    influences = 0;
+    actions = 0;
     touchRandomizer();
   }
 
@@ -124,15 +124,15 @@ public abstract class NoUser implements Serializable {
           return o1.getName().compareTo(o2.getName());
         }
       };
-      
+
       Class<? extends NoUser> userClass = getClass();
       StringBuilder toString = new StringBuilder();
-      
+
       while (userClass != null) {
         Field[] noHashFields = userClass.getDeclaredFields();
-        
+
         Arrays.sort(noHashFields, fieldComp);
-        
+
         for (Field field : noHashFields) {
           if (field.isAnnotationPresent(NoHash.class)) {
             field.setAccessible(true);
@@ -143,21 +143,23 @@ public abstract class NoUser implements Serializable {
             }
           }
         }
-        
+
         if (userClass == NoUser.class) {
           userClass = null;
         } else {
           userClass = (Class<? extends NoUser>) userClass.getSuperclass();
         }
       }
-      
+
       byte[] itemBytes = toString.toString().getBytes();
 
       return NoUtil.getHashFromByteArray(itemBytes);
     } catch (IllegalArgumentException e) {
-      throw new NoDashFatalException("IllegalArgument Exception encountered while generating user hash.", e);
+      throw new NoDashFatalException(
+          "IllegalArgument Exception encountered while generating user hash.", e);
     } catch (IllegalAccessException e) {
-      throw new NoDashFatalException("IllegalAccess Exception encountered while generating user hash.", e);
+      throw new NoDashFatalException(
+          "IllegalAccess Exception encountered while generating user hash.", e);
     }
   }
 
@@ -183,12 +185,12 @@ public abstract class NoUser implements Serializable {
   }
 
   public final void addAction(NoAction action) {
-    this.outgoing.add(action);
+    outgoing.add(action);
     actions++;
   }
 
   public final List<NoAction> getNoActions() {
-    return this.outgoing;
+    return outgoing;
   }
 
   public final BigInteger getPublicExponent() {
@@ -213,23 +215,23 @@ public abstract class NoUser implements Serializable {
 
   private final byte[] decryptRsa(byte[] data)
       throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-    return NoUtil.decryptRsa(data, this.privateKey);
+    return NoUtil.decryptRsa(data, privateKey);
   }
 
-  public static NoUser createUserFromFile(byte[] data, char[] password, Class<? extends NoUser> clazz)
-      throws NoUserNotValidException {
+  public static NoUser createUserFromFile(byte[] data, char[] password,
+      Class<? extends NoUser> clazz) throws NoUserNotValidException {
     byte[] decrypted;
     try {
       decrypted = NoUtil.decrypt(data, password);
     } catch (IllegalBlockSizeException | BadPaddingException e) {
       throw new NoUserNotValidException(e);
     }
-    
+
     Gson gson = new Gson();
     String json = NoUtil.fromBytes(decrypted);
     try {
-      NoUser noUser = gson.fromJson(json, clazz);   
-      return noUser; 
+      NoUser noUser = gson.fromJson(json, clazz);
+      return noUser;
     } catch (JsonSyntaxException e) {
       throw new NoUserNotValidException(e);
     }
@@ -244,7 +246,7 @@ public abstract class NoUser implements Serializable {
     if (otherUser == null) {
       return false;
     }
-    
+
     if (!NoUser.class.isAssignableFrom(otherUser.getClass())) {
       return false;
     }
