@@ -130,6 +130,7 @@ public abstract class NoUser implements Serializable {
       };
       
       Class<? extends NoUser> userClass = getClass();
+      StringBuilder toString = new StringBuilder();
       
       while (userClass != null) {
         Field[] noHashFields = userClass.getDeclaredFields();
@@ -139,7 +140,8 @@ public abstract class NoUser implements Serializable {
         for (Field field : noHashFields) {
           if (field.isAnnotationPresent(NoHash.class)) {
             field.setAccessible(true);
-            items.add(field.get(this));
+            toString.append("|");
+            toString.append(field.get(this).toString());
           }
         }
         
@@ -150,15 +152,9 @@ public abstract class NoUser implements Serializable {
         }
       }
       
-      
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      ObjectOutputStream oos = new ObjectOutputStream(baos);
-      oos.writeObject(items);
-      byte[] itemBytes = baos.toByteArray();
-      
+      byte[] itemBytes = toString.toString().getBytes();
+
       return NoUtil.getHashFromByteArray(itemBytes);
-    } catch (IOException e) {
-      throw new NoDashFatalException("IO Exception encountered while generating user hash.", e);
     } catch (IllegalArgumentException e) {
       throw new NoDashFatalException("IllegalArgument Exception encountered while generating user hash.", e);
     } catch (IllegalAccessException e) {
