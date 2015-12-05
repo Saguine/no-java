@@ -18,9 +18,6 @@
 
 package nodash.models;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
@@ -121,7 +118,6 @@ public abstract class NoUser implements Serializable {
   @SuppressWarnings("unchecked")
   public final byte[] createHash() {
     try {
-      List<Object> items = new ArrayList<Object>();
       Comparator<Field> fieldComp = new Comparator<Field>() {
         @Override
         public int compare(Field o1, Field o2) {
@@ -141,7 +137,10 @@ public abstract class NoUser implements Serializable {
           if (field.isAnnotationPresent(NoHash.class)) {
             field.setAccessible(true);
             toString.append("|");
-            toString.append(field.get(this).toString());
+            Object item = field.get(this);
+            if (item != null) {
+              toString.append(field.get(this).toString());
+            }
           }
         }
         
